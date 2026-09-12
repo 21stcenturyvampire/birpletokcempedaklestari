@@ -1,0 +1,71 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import Layout from './components/Layout'
+import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
+import Keuangan from './pages/Keuangan'
+import KategoriTransaksi from './pages/KategoriTransaksi'
+import Persediaan from './pages/Persediaan'
+import KategoriBarang from './pages/KategoriBarang'
+import Pengguna from './pages/Pengguna'
+import KontenLandingPage from './pages/KontenLandingPage'
+import NotFound from './pages/NotFound'
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+
+          <Route
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/keuangan" element={<Keuangan />} />
+            <Route
+              path="/keuangan/kategori"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <KategoriTransaksi />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/persediaan" element={<Persediaan />} />
+            <Route
+              path="/persediaan/kategori"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <KategoriBarang />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pengguna"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <Pengguna />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/konten-website"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <KontenLandingPage />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  )
+}

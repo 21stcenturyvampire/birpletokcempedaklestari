@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bir Pletok Cempedak Lestari — Kedai Rempah Betawi di Jagakarsa</title>
+<meta name="description" content="Bir Pletok Cempedak Lestari, kedai rempah Betawi di Srengseng Sawah, Jagakarsa. Bir pletok hangat racikan lebih dari 10 rempah, tanpa alkohol, untuk dine-in dan takeaway.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon-950:#33090f;
+    --maroon-900:#450e16;
+    --maroon-800:#5c1620;
+    --secang-600:#8e2430;
+    --secang-500:#a8323f;
+    --gold-500:#c89b3c;
+    --gold-300:#e0c179;
+    --cream-100:#f4e9d8;
+    --cream-300:#e4d2b0;
+    --paper:#f2e6cd;
+    --ink-900:#2c150c;
+    --max:1120px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *,*::before,*::after{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  body{
+    margin:0;
+    background:var(--maroon-950);
+    color:var(--cream-100);
+    font-family:'Karla', sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    margin:0;
+    color:var(--cream-100);
+  }
+
+  a{ color:inherit; }
+
+  .wrap{
+    max-width:var(--max);
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  img,svg{ display:block; max-width:100%; }
+
+  :focus-visible{
+    outline:2px solid var(--gold-300);
+    outline-offset:3px;
+  }
+
+  /* ---------- Zigzag ornament (gigi balang) ---------- */
+  .gigi-balang{
+    height:16px;
+    width:100%;
+    background:
+      linear-gradient(135deg, var(--gold-500) 25%, transparent 25.5%) 0 0,
+      linear-gradient(225deg, var(--gold-500) 25%, transparent 25.5%) 0 0;
+    background-size:20px 32px;
+    background-repeat:repeat-x;
+    background-position:top;
+    opacity:0.85;
+  }
+  .gigi-balang.flip{ transform:rotate(180deg); }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;
+    top:0;
+    z-index:40;
+    background:rgba(51,9,15,0.94);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid rgba(200,155,60,0.35);
+  }
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 0;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    color:var(--cream-100);
+    text-decoration:none;
+  }
+  .brand-mark{
+    width:34px; height:34px; flex:none;
+  }
+  .brand span{
+    line-height:1.15;
+    font-size:0.95rem;
+  }
+  .nav-links{
+    display:none;
+    gap:28px;
+    font-size:0.95rem;
+  }
+  .nav-links a{
+    text-decoration:none;
+    color:var(--cream-300);
+    border-bottom:1px solid transparent;
+    padding-bottom:2px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .nav-links a:hover{ color:var(--gold-300); border-color:var(--gold-500); }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 18px;
+    border-radius:2px;
+    font-family:'Karla', sans-serif;
+    font-weight:600;
+    font-size:0.92rem;
+    text-decoration:none;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn-gold{
+    background:var(--gold-500);
+    color:var(--ink-900);
+  }
+  .btn-gold:hover{ background:var(--gold-300); }
+  .btn-line{
+    background:transparent;
+    color:var(--cream-100);
+    border-color:rgba(244,233,216,0.5);
+  }
+  .btn-line:hover{ border-color:var(--gold-300); color:var(--gold-300); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding:64px 0 56px;
+    display:grid;
+    grid-template-columns:1fr;
+    gap:40px;
+    align-items:center;
+  }
+  .hero-copy .kicker{
+    color:var(--gold-300);
+    font-size:0.9rem;
+    letter-spacing:0.02em;
+    margin:0 0 14px;
+  }
+  .hero-copy h1{
+    font-size:2.5rem;
+    line-height:1.08;
+    max-width:14ch;
+  }
+  .hero-copy p.lead{
+    margin:20px 0 0;
+    max-width:46ch;
+    color:var(--cream-300);
+    font-size:1.05rem;
+  }
+  .rating-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:22px;
+    padding:8px 14px;
+    border:1px solid rgba(200,155,60,0.45);
+    border-radius:999px;
+    font-size:0.9rem;
+    color:var(--cream-100);
+  }
+  .rating-chip svg{ width:16px; height:16px; }
+  .hero-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:28px;
+  }
+  .hero-art{
+    justify-self:center;
+  }
+  .hero-art svg{
+    width:min(320px, 78vw);
+    height:auto;
+  }
+
+  .steam-line{
+    animation:drift 5s ease-in-out infinite;
+    transform-origin:center bottom;
+  }
+  .steam-line.s2{ animation-delay:.6s; }
+  .steam-line.s3{ animation-delay:1.2s; }
+  @keyframes drift{
+    0%,100%{ transform:translateY(0) scaleY(1); opacity:0.55; }
+    50%{ transform:translateY(-6px) scaleY(1.04); opacity:0.9; }
+  }
+
+  section{ padding:64px 0; }
+  .section-head{ max-width:60ch; margin-bottom:36px; }
+  .section-head h2{ font-size:1.9rem; }
+  .section-head p{ color:var(--cream-300); margin-top:12px; }
+
+  /* ---------- Tentang ---------- */
+  #tentang{ background:var(--maroon-900); }
+  .about-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:44px;
+  }
+  .about-copy p{ color:var(--cream-300); max-width:56ch; }
+  .about-copy p + p{ margin-top:14px; }
+
+  .spice-box{
+    border:1px solid rgba(200,155,60,0.4);
+    padding:26px 24px;
+  }
+  .spice-box h3{
+    font-size:1.15rem;
+    color:var(--gold-300);
+    margin-bottom:16px;
+  }
+  .spice-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 18px;
+    font-size:0.94rem;
+    color:var(--cream-100);
+  }
+  .spice-list li{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .spice-list li::before{
+    content:"";
+    width:5px; height:5px;
+    border-radius:50%;
+    background:var(--secang-500);
+    flex:none;
+    transform:translateY(-2px);
+  }
+  .spice-note{
+    margin-top:16px;
+    font-size:0.85rem;
+    color:var(--cream-300);
+    border-top:1px solid rgba(200,155,60,0.25);
+    padding-top:12px;
+  }
+
+  /* ---------- Menu ---------- */
+  #menu{ background:var(--maroon-950); }
+  .menu-board{
+    background:var(--paper);
+    color:var(--ink-900);
+    padding:38px 30px;
+    position:relative;
+    border:1px solid rgba(44,21,12,0.15);
+  }
+  .menu-board::before,
+  .menu-board::after{
+    content:"";
+    position:absolute;
+    top:14px;
+    width:10px; height:10px;
+    border-radius:50%;
+    background:var(--secang-600);
+    box-shadow:0 0 0 3px rgba(44,21,12,0.08);
+  }
+  .menu-board::before{ left:18px; }
+  .menu-board::after{ right:18px; }
+  .menu-cat + .menu-cat{ margin-top:32px; }
+  .menu-cat h3{
+    font-family:'Fraunces', serif;
+    color:var(--secang-600);
+    font-size:1.2rem;
+    margin-bottom:16px;
+    padding-bottom:8px;
+    border-bottom:1px solid rgba(44,21,12,0.2);
+  }
+  .menu-item{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    padding:9px 0;
+  }
+  .menu-item .name{
+    font-weight:600;
+  }
+  .menu-item .name small{
+    display:block;
+    font-weight:400;
+    color:rgba(44,21,12,0.7);
+    font-size:0.85rem;
+    margin-top:2px;
+  }
+  .menu-item .leader{
+    flex:1;
+    border-bottom:1px dotted rgba(44,21,12,0.35);
+    height:1px;
+    transform:translateY(-4px);
+  }
+  .menu-item .price{
+    font-weight:600;
+    white-space:nowrap;
+    color:var(--secang-600);
+  }
+  .menu-foot{
+    margin-top:22px;
+    font-size:0.85rem;
+    color:rgba(44,21,12,0.75);
+  }
+
+  /* ---------- Ulasan ---------- */
+  #ulasan{ background:var(--maroon-900); }
+  .rating-summary{
+    display:flex;
+    align-items:center;
+    gap:22px;
+    margin-bottom:36px;
+    flex-wrap:wrap;
+  }
+  .rating-num{
+    font-family:'Fraunces', serif;
+    font-size:3rem;
+    color:var(--gold-300);
+    line-height:1;
+  }
+  .rating-summary .stars{ display:flex; gap:3px; margin:6px 0; }
+  .rating-summary .stars svg{ width:16px; height:16px; }
+  .rating-summary .meta{ color:var(--cream-300); font-size:0.9rem; }
+
+  .review-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0;
+    border-top:1px solid rgba(200,155,60,0.3);
+  }
+  .review{
+    padding:26px 0;
+    border-bottom:1px solid rgba(200,155,60,0.3);
+  }
+  .review p{
+    margin:0 0 14px;
+    font-size:1rem;
+    color:var(--cream-100);
+    max-width:58ch;
+  }
+  .review .who{
+    font-size:0.85rem;
+    color:var(--cream-300);
+  }
+  .review .who b{ color:var(--gold-300); font-weight:600; }
+
+  /* ---------- Lokasi ---------- */
+  #lokasi{ background:var(--maroon-950); }
+  .loc-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:36px;
+  }
+  .loc-list{ list-style:none; margin:0; padding:0; }
+  .loc-list li{
+    display:flex;
+    gap:14px;
+    padding:16px 0;
+    border-bottom:1px solid rgba(200,155,60,0.25);
+  }
+  .loc-list li:first-child{ padding-top:0; }
+  .loc-list svg{ width:20px; height:20px; flex:none; margin-top:2px; color:var(--gold-500); }
+  .loc-list .label{ font-size:0.82rem; color:var(--cream-300); margin-bottom:3px; }
+  .loc-list .value{ font-size:1rem; color:var(--cream-100); }
+  .loc-actions{ display:flex; flex-wrap:wrap; gap:14px; margin-top:24px; }
+  .map-frame{
+    border:1px solid rgba(200,155,60,0.4);
+    overflow:hidden;
+    min-height:280px;
+  }
+  .map-frame iframe{ width:100%; height:100%; min-height:280px; border:0; display:block; filter:sepia(12%) saturate(85%); }
+
+  /* ---------- Media sosial ---------- */
+  #sosial{ background:var(--maroon-900); text-align:center; display:none; }
+  #sosial .section-head{ margin-left:auto; margin-right:auto; }
+  .sosial-list{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+  .sosial-link{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    padding:10px 18px;
+    border:1px solid rgba(200,155,60,0.45);
+    border-radius:999px;
+    text-decoration:none;
+    color:var(--cream-100);
+    font-size:0.92rem;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .sosial-link:hover{ border-color:var(--gold-300); color:var(--gold-300); }
+  .sosial-link svg{ width:18px; height:18px; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--maroon-900);
+    border-top:1px solid rgba(200,155,60,0.3);
+    padding:36px 0;
+  }
+  .foot-grid{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    gap:20px;
+    align-items:center;
+  }
+  .foot-grid .brand{ font-size:1rem; }
+  .foot-meta{
+    color:var(--cream-300);
+    font-size:0.85rem;
+    text-align:right;
+  }
+  .foot-admin{
+    display:block;
+    margin-top:6px;
+    font-size:0.78rem;
+    color:rgba(228,210,176,0.55);
+    text-decoration:none;
+  }
+  .foot-admin:hover{ color:var(--gold-300); }
+
+  @media (min-width:760px){
+    .nav-links{ display:flex; }
+    .hero{ grid-template-columns:1.1fr 0.9fr; padding:88px 0 72px; }
+    .hero-copy h1{ font-size:3.1rem; }
+    .about-grid{ grid-template-columns:1.2fr 0.8fr; }
+    .review-grid{ grid-template-columns:repeat(3,1fr); border-top:none; }
+    .review{ border-bottom:none; border-top:1px solid rgba(200,155,60,0.3); }
+    .review:not(:last-child){ border-right:1px solid rgba(200,155,60,0.3); padding-right:24px; }
+    .review:not(:first-child){ padding-left:24px; }
+    .loc-grid{ grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="brand" aria-label="Bir Pletok Cempedak Lestari">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" stroke="#c89b3c" stroke-width="1.5"/>
+        <path d="M14 15h12l-1.4 14.5a2 2 0 0 1-2 1.8h-5.2a2 2 0 0 1-2-1.8L14 15Z" fill="#8e2430" stroke="#c89b3c" stroke-width="1.2"/>
+        <path d="M12.5 15h15" stroke="#c89b3c" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M16 12c.6-1 1.6-1 2 0M22 12c.6-1 1.6-1 2 0" stroke="#e0c179" stroke-width="1.1" stroke-linecap="round"/>
+      </svg>
+      <span>Bir Pletok<br>Cempedak Lestari</span>
+    </a>
+    <nav class="nav-links" aria-label="Navigasi utama">
+      <a href="#tentang">Tentang</a>
+      <a href="#menu">Menu</a>
+      <a href="#ulasan">Ulasan</a>
+      <a href="#lokasi">Lokasi</a>
+    </nav>
+    <a class="btn btn-gold" id="btn-wa-header" href="https://wa.me/6281381916098" target="_blank" rel="noopener">Pesan via WhatsApp</a>
+  </div>
+</header>
+
+<div class="gigi-balang" aria-hidden="true"></div>
+
+<main>
+  <!-- HERO -->
+  <section class="hero wrap">
+    <div class="hero-copy">
+      <p class="kicker" id="hero-kicker">Kedai rempah Betawi · Srengseng Sawah, Jagakarsa</p>
+      <h1 id="hero-judul">Sebelas rempah, satu kehangatan Betawi</h1>
+      <p class="lead" id="hero-deskripsi">Bir Pletok Cempedak Lestari meracik bir pletok asli, minuman tradisional Betawi tanpa alkohol, dari jahe, kayu secang, dan rempah pilihan lain — diseduh hangat untuk disantap di kedai atau dibawa pulang.</p>
+      <div class="rating-chip">
+        <svg viewBox="0 0 20 20" fill="#c89b3c" aria-hidden="true"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9L10 15l-5.2 2.8 1-5.9L1.5 7.7l5.9-.8L10 1.5z"/></svg>
+        <span id="hero-rating-teks">4,4 dari 14 ulasan Google</span>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn-gold" id="btn-maps-hero" href="#" target="_blank" rel="noopener">Rute ke kedai</a>
+        <a class="btn btn-line" href="#menu">Lihat menu</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 300 340" xmlns="http://www.w3.org/2000/svg">
+        <path class="steam-line s1" d="M120 60c-8-12 8-16 0-28" stroke="#e4d2b0" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <path class="steam-line s2" d="M150 54c-8-12 8-16 0-28" stroke="#e4d2b0" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <path class="steam-line s3" d="M180 60c-8-12 8-16 0-28" stroke="#e4d2b0" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <path d="M95 95h110l-14 190a10 10 0 0 1-10 9H119a10 10 0 0 1-10-9L95 95Z" fill="#8e2430" stroke="#c89b3c" stroke-width="2"/>
+        <path d="M95 95h110" stroke="#c89b3c" stroke-width="2"/>
+        <path d="M205 120c22-4 32 10 30 26-2 15-18 24-34 22" fill="none" stroke="#c89b3c" stroke-width="6" stroke-linecap="round"/>
+        <ellipse cx="150" cy="97" rx="56" ry="10" fill="#e0c179"/>
+        <ellipse cx="128" cy="93" rx="14" ry="7" fill="#f4e9d8"/>
+        <ellipse cx="168" cy="92" rx="10" ry="6" fill="#f4e9d8"/>
+        <path d="M100 140h100l-4 30H104l-4-30Z" fill="#a8323f" opacity="0.55"/>
+        <path d="M104 210h92l-3 26H107l-3-26Z" fill="#a8323f" opacity="0.4"/>
+        <g stroke="#c89b3c" stroke-width="1.6" fill="none">
+          <circle cx="55" cy="300" r="14"/>
+          <path d="M48 300a7 7 0 0 1 14 0" />
+          <path d="M46 296c4-6 12-6 16 0" opacity="0.6"/>
+        </g>
+        <g fill="#e0c179">
+          <circle cx="240" cy="290" r="4"/>
+          <circle cx="252" cy="300" r="3"/>
+          <circle cx="238" cy="304" r="3"/>
+        </g>
+        <path d="M70 250c10-14 30-14 26 4-3 14-24 12-26-4Z" fill="#a8323f" stroke="#c89b3c" stroke-width="1.6"/>
+        <path d="M230 250c4-16 26-16 24 0-2 14-22 14-24 0Z" fill="none" stroke="#c89b3c" stroke-width="1.6"/>
+      </svg>
+    </div>
+  </section>
+
+  <div class="gigi-balang" aria-hidden="true"></div>
+
+  <!-- TENTANG -->
+  <section id="tentang">
+    <div class="wrap about-grid">
+      <div class="about-copy">
+        <div class="section-head">
+          <h2 id="tentang-judul">Bir tanpa alkohol, warisan yang tetap hidup</h2>
+        </div>
+        <p id="tentang-p1">Pada masa kolonial, orang Belanda gemar menikmati bir dan wine dalam setiap perayaan. Masyarakat Betawi yang mayoritas Muslim tidak bisa ikut minum minuman beralkohol itu, sehingga mereka meracik versi mereka sendiri dari rempah nusantara — hangat di badan, berbusa saat dikocok, namun sepenuhnya halal.</p>
+        <p id="tentang-p2">Begitulah bir pletok lahir: warna merahnya berasal dari kayu secang, bukan anggur, dan bunyi "pletok" datang dari kocokan bahan-bahannya di dalam bambu berisi es. Di Cempedak Lestari, resep itu masih kami jaga — diseduh setiap hari, disajikan hangat atau dingin, untuk siapa saja yang mampir di Srengseng Sawah.</p>
+      </div>
+      <div class="spice-box">
+        <h3 id="tentang-judul-rempah">Racikan rempah kami</h3>
+        <ul class="spice-list" id="daftar-rempah">
+          <li>Jahe</li><li>Kayu secang</li><li>Serai</li><li>Kayu manis</li><li>Cengkeh</li>
+          <li>Kapulaga</li><li>Biji pala</li><li>Daun pandan</li><li>Daun jeruk</li><li>Lada</li><li>Gula aren</li>
+        </ul>
+        <p class="spice-note" id="tentang-catatan">Direbus perlahan lalu disaring, tanpa fermentasi dan tanpa alkohol — aman diminum semua kalangan, dari anak-anak hingga lansia.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Menu di kedai</h2>
+        <p>Beberapa yang paling sering dipesan — tersedia untuk dine-in maupun takeaway.</p>
+      </div>
+      <div class="menu-board">
+        <div id="menu-kategori-list">
+          <div class="menu-cat">
+            <h3>Bir pletok</h3>
+            <div class="menu-item"><span class="name">Bir Pletok Original<small>Hangat atau dingin, rasa rempah klasik</small></span><span class="leader"></span><span class="price">Rp 15.000</span></div>
+            <div class="menu-item"><span class="name">Bir Pletok Susu Jahe<small>Perpaduan susu dan jahe yang lebih lembut</small></span><span class="leader"></span><span class="price">Rp 18.000</span></div>
+            <div class="menu-item"><span class="name">Bir Pletok Secang Pekat<small>Kayu secang lebih banyak, warna lebih merah</small></span><span class="leader"></span><span class="price">Rp 18.000</span></div>
+          </div>
+          <div class="menu-cat">
+            <h3>Teman minum</h3>
+            <div class="menu-item"><span class="name">Kerak Telor<small>Telor bebek atau ayam, disangrai di tempat</small></span><span class="leader"></span><span class="price">Rp 25.000</span></div>
+            <div class="menu-item"><span class="name">Gado-Gado Betawi<small>Sayur rebus, lontong, bumbu kacang</small></span><span class="leader"></span><span class="price">Rp 20.000</span></div>
+            <div class="menu-item"><span class="name">Pisang Goreng Rempah<small>Cocok disantap selagi bir pletok masih hangat</small></span><span class="leader"></span><span class="price">Rp 12.000</span></div>
+          </div>
+        </div>
+        <p class="menu-foot" id="menu-catatan-kaki">Harga dapat berubah sewaktu-waktu. Hubungi kedai untuk menu lengkap dan ketersediaan harian.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="gigi-balang flip" aria-hidden="true"></div>
+
+  <!-- ULASAN -->
+  <section id="ulasan">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Kata mereka yang sudah mampir</h2>
+      </div>
+      <div class="rating-summary">
+        <span class="rating-num" id="ulasan-rating-angka">4,4</span>
+        <div>
+          <div class="stars" id="ulasan-bintang" aria-hidden="true"></div>
+          <p class="meta" id="ulasan-meta">Berdasarkan 14 ulasan di Google Maps</p>
+        </div>
+      </div>
+      <div class="review-grid" id="daftar-ulasan">
+        <div class="review">
+          <p>"Racikan bir pletoknya pas di lidah — cenderung manis, dengan rasa hangat yang tidak berlebihan."</p>
+          <p class="who"><b>Pradanaputra</b> · Local Guide, 54 ulasan</p>
+        </div>
+        <div class="review">
+          <p>"Rasanya enak dan patut dicoba kalau sedang lewat daerah Srengseng Sawah."</p>
+          <p class="who"><b>Achmad Nurdiansyah</b> · Local Guide, 14 ulasan</p>
+        </div>
+        <div class="review">
+          <p>"Bir pletoknya benar-benar enak, jadi alasan untuk mampir lagi."</p>
+          <p class="who"><b>Indriyani</b> · Local Guide, 31 ulasan</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOKASI -->
+  <section id="lokasi">
+    <div class="wrap loc-grid">
+      <div>
+        <div class="section-head">
+          <h2>Datang langsung ke kedai</h2>
+          <p>Tepat di belakang kampus ISTN — mudah dijangkau untuk dine-in maupun ambil bawa pulang.</p>
+        </div>
+        <ul class="loc-list">
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s7-6.4 7-12a7 7 0 1 0-14 0c0 5.6 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <div><div class="label">Alamat</div><div class="value" id="lokasi-alamat">JRV7+PG5, Jl. Srengseng Sawah (Jl. Sarjana, belakang kampus ISTN), RT.001/RW.9, Srengseng Sawah, Jagakarsa, Jakarta Selatan 12640</div></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+            <div><div class="label">Jam buka</div><div class="value" id="lokasi-jam">Buka setiap hari mulai pukul 10.00 — jam tutup dapat berbeda tiap hari, cek Google Maps untuk status terkini.</div></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5c0 8.3 6.7 15 15 15l3-4-6-3-2 2c-2.5-1.3-4.7-3.5-6-6l2-2-3-6-4 0"/></svg>
+            <div><div class="label">Telepon / WhatsApp</div><div class="value" id="lokasi-telepon">0813-8191-6098</div></div>
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 8l9 6 9-6"/></svg>
+            <div><div class="label">Layanan</div><div class="value" id="lokasi-layanan">Dine-in dan takeaway</div></div>
+          </li>
+        </ul>
+        <div class="loc-actions">
+          <a class="btn btn-gold" id="btn-maps-lokasi" href="#" target="_blank" rel="noopener">Buka di Google Maps</a>
+          <a class="btn btn-line" id="btn-wa-lokasi" href="https://wa.me/6281381916098" target="_blank" rel="noopener">Pesan via WhatsApp</a>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe id="peta-lokasi" src="https://www.google.com/maps?q=-6.3557345,106.813856&hl=id&z=17&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Peta lokasi Bir Pletok Cempedak Lestari"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- MEDIA SOSIAL (tersembunyi kalau belum diisi lewat admin) -->
+  <section id="sosial">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Ikuti kami</h2>
+        <p>Info promo dan menu baru lebih dulu tayang di media sosial.</p>
+      </div>
+      <div class="sosial-list" id="daftar-sosial"></div>
+    </div>
+  </section>
+</main>
+
+<div class="gigi-balang" aria-hidden="true"></div>
+
+<footer>
+  <div class="wrap foot-grid">
+    <a href="#" class="brand" aria-label="Bir Pletok Cempedak Lestari">
+      <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="20" cy="20" r="19" stroke="#c89b3c" stroke-width="1.5"/>
+        <path d="M14 15h12l-1.4 14.5a2 2 0 0 1-2 1.8h-5.2a2 2 0 0 1-2-1.8L14 15Z" fill="#8e2430" stroke="#c89b3c" stroke-width="1.2"/>
+        <path d="M12.5 15h15" stroke="#c89b3c" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span>Bir Pletok Cempedak Lestari</span>
+    </a>
+    <div class="foot-meta">
+      Srengseng Sawah, Jagakarsa, Jakarta Selatan<br>
+      <span id="footer-telepon">0813-8191-6098</span>
+      <a class="foot-admin" href="#" id="tautan-admin">Kelola konten →</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // =====================================================================
+  // KONFIGURASI — isi 3 nilai ini setelah Supabase & aplikasi admin siap.
+  // Aman ditaruh di sini: SUPABASE_ANON_KEY memang didesain untuk publik,
+  // aksesnya dibatasi lewat Row Level Security di database.
+  // =====================================================================
+  const SUPABASE_URL = 'https://xxxxxxxxxxxx.supabase.co'
+  const SUPABASE_ANON_KEY = 'isi-dengan-anon-public-key-dari-supabase'
+  const ADMIN_URL = 'https://alamat-aplikasi-admin-kamu.vercel.app' // isi setelah admin-app di-deploy
+
+  document.getElementById('tautan-admin').href = ADMIN_URL
+
+  function teks(id, isi){
+    if (isi === undefined || isi === null || isi === '') return
+    const el = document.getElementById(id)
+    if (el) el.textContent = isi
+  }
+
+  function angkaKeRupiah(n){
+    return 'Rp ' + Number(n || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 })
+  }
+
+  function teleponKeWhatsapp(telepon){
+    let digit = String(telepon || '').replace(/[^0-9]/g, '')
+    if (digit.startsWith('0')) digit = '62' + digit.slice(1)
+    return 'https://wa.me/' + digit
+  }
+
+  function renderHero(d){
+    teks('hero-kicker', d.kicker)
+    teks('hero-judul', d.judul)
+    teks('hero-deskripsi', d.deskripsi)
+    teks('hero-rating-teks', d.teks_rating)
+  }
+
+  function renderTentang(d){
+    teks('tentang-judul', d.judul)
+    teks('tentang-p1', d.paragraf_1)
+    teks('tentang-p2', d.paragraf_2)
+    teks('tentang-judul-rempah', d.judul_rempah)
+    teks('tentang-catatan', d.catatan_rempah)
+    if (Array.isArray(d.daftar_rempah) && d.daftar_rempah.length){
+      const ul = document.getElementById('daftar-rempah')
+      ul.innerHTML = d.daftar_rempah.map((r) => `<li>${escapeHtml(r)}</li>`).join('')
+    }
+  }
+
+  function renderMenu(d){
+    teks('menu-catatan-kaki', d.catatan_kaki)
+    if (!Array.isArray(d.item) || !d.item.length) return
+    const kategoriUrut = []
+    const perKategori = {}
+    for (const it of d.item){
+      const kat = it.kategori || 'Lainnya'
+      if (!perKategori[kat]) { perKategori[kat] = []; kategoriUrut.push(kat) }
+      perKategori[kat].push(it)
+    }
+    const html = kategoriUrut.map((kat) => `
+      <div class="menu-cat">
+        <h3>${escapeHtml(kat)}</h3>
+        ${perKategori[kat].map((it) => `
+          <div class="menu-item">
+            <span class="name">${escapeHtml(it.nama || '')}${it.deskripsi ? `<small>${escapeHtml(it.deskripsi)}</small>` : ''}</span>
+            <span class="leader"></span>
+            <span class="price">${angkaKeRupiah(it.harga)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `).join('')
+    document.getElementById('menu-kategori-list').innerHTML = html
+  }
+
+  function renderUlasan(d){
+    if (d.rating !== undefined) teks('ulasan-rating-angka', String(d.rating).replace('.', ','))
+    if (d.jumlah_ulasan !== undefined) teks('ulasan-meta', `Berdasarkan ${d.jumlah_ulasan} ulasan di Google Maps`)
+
+    const rating = Number(d.rating || 0)
+    const penuh = Math.round(rating)
+    let starHtml = ''
+    for (let i = 0; i < 5; i++){
+      const isi = i < penuh ? 1 : 0.4
+      starHtml += `<svg viewBox="0 0 20 20" fill="#c89b3c" opacity="${isi}"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9L10 15l-5.2 2.8 1-5.9L1.5 7.7l5.9-.8L10 1.5z"/></svg>`
+    }
+    const bintangEl = document.getElementById('ulasan-bintang')
+    if (bintangEl) bintangEl.innerHTML = starHtml
+
+    if (Array.isArray(d.item) && d.item.length){
+      document.getElementById('daftar-ulasan').innerHTML = d.item.map((r) => `
+        <div class="review">
+          <p>"${escapeHtml(r.isi || '')}"</p>
+          <p class="who"><b>${escapeHtml(r.nama || '')}</b>${r.peran ? ' · ' + escapeHtml(r.peran) : ''}</p>
+        </div>
+      `).join('')
+    }
+  }
+
+  function renderLokasi(d){
+    teks('lokasi-alamat', d.alamat)
+    teks('lokasi-jam', d.jam_buka)
+    teks('lokasi-telepon', d.telepon)
+    teks('lokasi-layanan', d.layanan)
+    teks('footer-telepon', d.telepon)
+
+    if (d.google_maps_url){
+      document.getElementById('btn-maps-hero').href = d.google_maps_url
+      document.getElementById('btn-maps-lokasi').href = d.google_maps_url
+    }
+    if (d.telepon){
+      const wa = teleponKeWhatsapp(d.telepon)
+      document.getElementById('btn-wa-header').href = wa
+      document.getElementById('btn-wa-lokasi').href = wa
+    }
+    if (d.latitude && d.longitude){
+      document.getElementById('peta-lokasi').src =
+        `https://www.google.com/maps?q=${d.latitude},${d.longitude}&hl=id&z=17&output=embed`
+    }
+  }
+
+  const IKON_SOSIAL = {
+    instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>',
+    facebook: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 8h-2a2 2 0 0 0-2 2v10M9 13h6"/><circle cx="12" cy="12" r="9"/></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.5 2.2 2.1 3.8 4 4.2"/></svg>',
+    whatsapp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l1.4-4A8 8 0 1 1 9 19.5L4 20Z"/></svg>',
+    youtube: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M11 10l4 2-4 2v-4Z" fill="currentColor" stroke="none"/></svg>',
+    lainnya: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 2.5 14.3 0 18M12 3c-2.5 2.7-2.5 14.3 0 18"/></svg>',
+  }
+  const LABEL_SOSIAL = { instagram:'Instagram', facebook:'Facebook', tiktok:'TikTok', whatsapp:'WhatsApp', youtube:'YouTube', lainnya:'Media Sosial' }
+
+  function renderSosial(d){
+    if (!Array.isArray(d.item) || !d.item.length) return
+    const html = d.item.map((it) => `
+      <a class="sosial-link" href="${escapeAttr(it.url)}" target="_blank" rel="noopener">
+        ${IKON_SOSIAL[it.platform] || IKON_SOSIAL.lainnya}
+        <span>${escapeHtml(it.label || LABEL_SOSIAL[it.platform] || 'Media Sosial')}</span>
+      </a>
+    `).join('')
+    document.getElementById('daftar-sosial').innerHTML = html
+    document.getElementById('sosial').style.display = 'block'
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]))
+  }
+  function escapeAttr(s){ return escapeHtml(s) }
+
+  async function muatKonten(){
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/landing_konten?select=section,data`, {
+        headers: {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      })
+      if (!res.ok) throw new Error('Gagal memuat konten: ' + res.status)
+      const rows = await res.json()
+      const map = {}
+      for (const row of rows) map[row.section] = row.data
+
+      if (map.hero) renderHero(map.hero)
+      if (map.tentang) renderTentang(map.tentang)
+      if (map.menu) renderMenu(map.menu)
+      if (map.ulasan) renderUlasan(map.ulasan)
+      if (map.lokasi) renderLokasi(map.lokasi)
+      if (map.sosial_media) renderSosial(map.sosial_media)
+    } catch (err) {
+      // Kalau gagal (mis. Supabase sedang pause atau offline), halaman
+      // tetap menampilkan konten bawaan di atas -- tidak pernah kosong.
+      console.warn('Memuat konten dinamis gagal, menampilkan konten bawaan.', err)
+    }
+  }
+
+  muatKonten()
+</script>
+
+</body>
+</html>
