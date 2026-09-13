@@ -25,27 +25,45 @@ bpcl-project/
 
 ---
 
-## 1. Siapkan database (Supabase, gratis)
+## 1. Database (Supabase) — sudah dikonfigurasi
 
-1. Buat akun & project baru di [supabase.com](https://supabase.com).
-2. Buka **SQL Editor → New query**, jalankan isi `supabase/schema.sql`.
-3. Jalankan query baru lagi dengan isi `supabase/landing_konten.sql`
-   (tabel khusus konten landing page, termasuk isi awal supaya website
-   tidak kosong).
-4. Di **Project Settings → API**, catat:
-   - **Project URL**
-   - **anon public key**
-   - **service_role key** (dipakai nanti khusus untuk keep-alive, jangan
-     dipakai di frontend manapun)
+Project Supabase kamu: `phtzknecozrothysbkwg`. Konfigurasi berikut
+**sudah otomatis terisi** di dalam paket ini, jadi kamu bisa lewati
+langkah isi manual:
+
+- `admin-app/.env` — sudah berisi `VITE_SUPABASE_URL` dan
+  `VITE_SUPABASE_ANON_KEY` yang benar.
+- `landing-page/index.html` — konstanta `SUPABASE_URL` dan
+  `SUPABASE_ANON_KEY` di bagian `<script>` sudah diisi.
+
+Yang **masih perlu kamu jalankan manual** (satu kali saja):
+
+1. Buka **SQL Editor** di Supabase Dashboard, jalankan isi
+   `supabase/schema.sql`, lalu jalankan `supabase/landing_konten.sql`.
+2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
+   selesai di-deploy (lihat langkah 5).
+
+> **Catatan keamanan:** kamu juga membagikan `service_role` key dan
+> `secret key` (`sb_secret_...`). Keduanya **sengaja tidak saya taruh
+> di file manapun** dalam paket ini — kalau ter-commit ke repo GitHub
+> (apalagi yang publik), siapa pun bisa memakainya untuk membaca/mengubah
+> seluruh data tanpa melalui aturan keamanan (RLS). Satu-satunya tempat
+> yang aman untuk menaruhnya adalah kotak **Secrets** di GitHub Actions
+> (langkah 6 di bawah) atau Supabase Dashboard itu sendiri — bukan di
+> dalam file kode. `.env` sudah masuk `.gitignore` supaya tidak ikut
+> ter-push ke GitHub, tapi tetap jangan menaruh service_role/secret key
+> di file itu juga.
 
 ## 2. Jalankan aplikasi admin
 
 ```bash
 cd admin-app
 npm install
-cp .env.example .env    # isi VITE_SUPABASE_URL & VITE_SUPABASE_ANON_KEY
 npm run dev
 ```
+
+`.env` sudah berisi konfigurasi Supabase kamu, jadi langsung bisa
+`npm run dev` tanpa isi apa-apa lagi.
 
 Buat akun pertama lewat **Supabase Dashboard → Authentication → Add
 user**, login di aplikasi, lalu jadikan Super Admin lewat SQL Editor:
@@ -125,9 +143,11 @@ hidup sendiri; harus ada yang login ke Supabase Dashboard dan klik
 1. Push repo ini ke GitHub (kalau belum, lihat langkah 5).
 2. Di repo GitHub: **Settings → Secrets and variables → Actions → New
    repository secret**. Tambahkan:
-   - `SUPABASE_URL` — Project URL Supabase
-   - `SUPABASE_SERVICE_ROLE_KEY` — service_role key (dari langkah 1,
-     **bukan** anon key)
+   - `SUPABASE_URL` → `https://phtzknecozrothysbkwg.supabase.co`
+   - `SUPABASE_SERVICE_ROLE_KEY` → nilai `secret_role` (JWT yang berisi
+     `"role":"service_role"`) yang sudah kamu catat sendiri — **jangan**
+     ditaruh di file mana pun di repo ini, isi langsung lewat form
+     Secrets di GitHub.
 3. Selesai. Workflow `.github/workflows/keepalive.yml` akan otomatis
    "menyapa" database setiap 3 hari sekali (jauh sebelum batas 7 hari),
    tanpa kamu perlu buka apa-apa. Cek tab **Actions** di GitHub sesekali
