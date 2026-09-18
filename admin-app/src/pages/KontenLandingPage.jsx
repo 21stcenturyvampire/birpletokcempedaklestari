@@ -13,6 +13,7 @@ const TAB_LIST = [
   { key: 'ulasan', label: 'Ulasan' },
   { key: 'lokasi', label: 'Lokasi & Kontak' },
   { key: 'sosial_media', label: 'Media Sosial' },
+  { key: 'tampilan', label: 'Tampilan (Warna)' },
 ]
 
 const OPSI_PLATFORM = [
@@ -84,6 +85,11 @@ export default function KontenLandingPage() {
         if (!it.url?.trim() || !/^https?:\/\//.test(it.url)) errs.push(`Media sosial baris ke-${i + 1}: tautan harus diawali http:// atau https://`)
       })
     }
+    if (section === 'tampilan') {
+      const hex = /^#[0-9a-fA-F]{6}$/
+      if (!hex.test(data.warna_latar || '')) errs.push('Warna latar tidak valid.')
+      if (!hex.test(data.warna_aksen || '')) errs.push('Warna aksen tidak valid.')
+    }
     return errs
   }
 
@@ -115,10 +121,11 @@ export default function KontenLandingPage() {
   const ulasan = konten.ulasan || { item: [] }
   const lokasi = konten.lokasi || {}
   const sosial = konten.sosial_media || { item: [] }
+  const tampilan = konten.tampilan || { warna_latar: '#33090f', warna_aksen: '#c89b3c' }
 
   return (
     <div>
-      <h2 className="judul-halaman">Konten Website</h2>
+      <h2 className="judul-halaman">Update Konten</h2>
       <p className="teks-muted" style={{ marginTop: -8, marginBottom: 18 }}>
         Ubah isi landing page di sini — perubahan langsung tampil di website publik tanpa perlu sentuh kode.
       </p>
@@ -280,6 +287,51 @@ export default function KontenLandingPage() {
             />
             <p className="teks-muted" style={{ fontSize: '0.85rem', marginTop: 8 }}>
               Kosongkan daftar ini kalau belum punya media sosial — bagian ini otomatis tidak tampil di landing page.
+            </p>
+          </>
+        )}
+
+        {tab === 'tampilan' && (
+          <>
+            <div className="form-grid-2">
+              <div>
+                <label htmlFor="warnaLatar">Warna latar utama website</label>
+                <div className="color-field">
+                  <input
+                    id="warnaLatar"
+                    type="color"
+                    value={tampilan.warna_latar || '#33090f'}
+                    onChange={(e) => ubahBagian('tampilan', { ...tampilan, warna_latar: e.target.value })}
+                  />
+                  <input
+                    className="input"
+                    value={tampilan.warna_latar || ''}
+                    onChange={(e) => ubahBagian('tampilan', { ...tampilan, warna_latar: e.target.value })}
+                    placeholder="#33090f"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="warnaAksen">Warna aksen (tombol, judul emas)</label>
+                <div className="color-field">
+                  <input
+                    id="warnaAksen"
+                    type="color"
+                    value={tampilan.warna_aksen || '#c89b3c'}
+                    onChange={(e) => ubahBagian('tampilan', { ...tampilan, warna_aksen: e.target.value })}
+                  />
+                  <input
+                    className="input"
+                    value={tampilan.warna_aksen || ''}
+                    onChange={(e) => ubahBagian('tampilan', { ...tampilan, warna_aksen: e.target.value })}
+                    placeholder="#c89b3c"
+                  />
+                </div>
+              </div>
+            </div>
+            <p className="teks-muted" style={{ fontSize: '0.85rem', marginTop: 10 }}>
+              Warna latar dipakai untuk latar belakang gelap di seluruh landing page (bagian yang lebih terang
+              dihitung otomatis dari warna ini). Warna aksen dipakai untuk tombol, judul, dan garis dekorasi.
             </p>
           </>
         )}

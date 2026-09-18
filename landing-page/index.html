@@ -688,7 +688,7 @@
   // =====================================================================
   const SUPABASE_URL = 'https://phtzknecozrothysbkwg.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodHprbmVjb3pyb3RoeXNia3dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMDc2MTQsImV4cCI6MjEwNDc4MzYxNH0._InPmWuWmHldkZkYqkMO0NTLgWSC_JzhoRNC9wdbq18'
-  const ADMIN_URL = 'https://bpcl-admin.vercel.app' // isi setelah admin-app di-deploy
+  const ADMIN_URL = 'https://alamat-aplikasi-admin-kamu.vercel.app' // isi setelah admin-app di-deploy
 
   document.getElementById('tautan-admin').href = ADMIN_URL
 
@@ -825,6 +825,41 @@
   }
   function escapeAttr(s){ return escapeHtml(s) }
 
+  function hexKeRgb(hex){
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '')
+    if (!m) return null
+    const n = parseInt(m[1], 16)
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+  }
+  function rgbKeHex(r, g, b){
+    return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')
+  }
+  // Campur warna dengan putih -- dipakai untuk menurunkan versi yang
+  // lebih terang dari 1 warna dasar (latar/aksen), supaya seluruh
+  // halaman tetap serasi walau hanya 2 warna yang diatur dari admin.
+  function campurPutih(hex, persen){
+    const rgb = hexKeRgb(hex)
+    if (!rgb) return hex
+    return rgbKeHex(
+      rgb.r + (255 - rgb.r) * persen,
+      rgb.g + (255 - rgb.g) * persen,
+      rgb.b + (255 - rgb.b) * persen
+    )
+  }
+
+  function renderTampilan(d){
+    const root = document.documentElement.style
+    if (d.warna_latar){
+      root.setProperty('--maroon-950', d.warna_latar)
+      root.setProperty('--maroon-900', campurPutih(d.warna_latar, 0.08))
+      root.setProperty('--maroon-800', campurPutih(d.warna_latar, 0.15))
+    }
+    if (d.warna_aksen){
+      root.setProperty('--gold-500', d.warna_aksen)
+      root.setProperty('--gold-300', campurPutih(d.warna_aksen, 0.35))
+    }
+  }
+
   async function muatKonten(){
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/landing_konten?select=section,data`, {
@@ -844,6 +879,7 @@
       if (map.ulasan) renderUlasan(map.ulasan)
       if (map.lokasi) renderLokasi(map.lokasi)
       if (map.sosial_media) renderSosial(map.sosial_media)
+      if (map.tampilan) renderTampilan(map.tampilan)
     } catch (err) {
       // Kalau gagal (mis. Supabase sedang pause atau offline), halaman
       // tetap menampilkan konten bawaan di atas -- tidak pernah kosong.

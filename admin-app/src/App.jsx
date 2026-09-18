@@ -7,8 +7,10 @@ import Dashboard from './pages/Dashboard'
 import Keuangan from './pages/Keuangan'
 import KategoriTransaksi from './pages/KategoriTransaksi'
 import Persediaan from './pages/Persediaan'
+import Inventaris from './pages/Inventaris'
 import KategoriBarang from './pages/KategoriBarang'
 import Pengguna from './pages/Pengguna'
+import JadwalKonten from './pages/JadwalKonten'
 import KontenLandingPage from './pages/KontenLandingPage'
 import NotFound from './pages/NotFound'
 
@@ -27,6 +29,7 @@ export default function App() {
             }
           >
             <Route path="/" element={<Dashboard />} />
+
             <Route path="/keuangan" element={<Keuangan />} />
             <Route
               path="/keuangan/kategori"
@@ -36,7 +39,9 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
             <Route path="/persediaan" element={<Persediaan />} />
+            <Route path="/persediaan/inventaris" element={<Inventaris />} />
             <Route
               path="/persediaan/kategori"
               element={
@@ -45,19 +50,22 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/konten/jadwal" element={<JadwalKonten />} />
+            <Route
+              path="/konten/update"
+              element={
+                <ProtectedRoute requireSuperAdmin>
+                  <KontenLandingPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/pengguna"
               element={
                 <ProtectedRoute requireSuperAdmin>
                   <Pengguna />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/konten-website"
-              element={
-                <ProtectedRoute requireSuperAdmin>
-                  <KontenLandingPage />
                 </ProtectedRoute>
               }
             />

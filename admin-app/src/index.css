@@ -347,6 +347,19 @@ label{ font-size:0.85rem; font-weight:600; display:block; margin:12px 0 5px; }
 .repeater-field{ margin-bottom:2px; }
 .repeater-field label{ margin:8px 0 4px; }
 
+/* ---------- Color field (tab Tampilan) ---------- */
+.color-field{ display:flex; align-items:center; gap:10px; }
+.color-field input[type="color"]{
+  width:44px; height:38px;
+  padding:2px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:#fff;
+  cursor:pointer;
+  flex:none;
+}
+.color-field .input{ flex:1; text-transform:lowercase; }
+
 :focus-visible{ outline:2px solid var(--gold-500); outline-offset:2px; }
 
 @media (prefers-reduced-motion: reduce){

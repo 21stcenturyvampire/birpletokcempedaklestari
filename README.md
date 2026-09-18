@@ -7,7 +7,8 @@ Supabase (gratis):
 bpcl-project/
 ├── supabase/            SQL untuk membuat semua tabel & aturan keamanan
 │   ├── schema.sql              (transaksi keuangan, persediaan, pengguna)
-│   └── landing_konten.sql      (konten landing page yang bisa diedit)
+│   ├── landing_konten.sql      (konten landing page yang bisa diedit)
+│   └── update_2.sql            (barang freetext, inventaris, jadwal konten, tampilan)
 ├── landing-page/
 │   └── index.html       Website publik (statis, cukup 1 file HTML)
 ├── admin-app/           Aplikasi internal: keuangan, stok, & editor konten
@@ -16,11 +17,11 @@ bpcl-project/
 ```
 
 - **landing-page/** — halaman publik yang dilihat calon pembeli. Kontennya
-  (judul, deskripsi, menu, ulasan, lokasi, media sosial) diambil otomatis
-  dari database, jadi bisa diubah tanpa menyentuh kode.
+  (judul, deskripsi, menu, ulasan, lokasi, media sosial, warna) diambil
+  otomatis dari database, jadi bisa diubah tanpa menyentuh kode.
 - **admin-app/** — dipakai Super Admin & Editor untuk mencatat transaksi
-  keuangan, stok barang, **dan mengedit konten landing page** (menu
-  "Konten Website").
+  keuangan, stok barang, aset inventaris, jadwal konten sosial media,
+  **dan mengedit konten + warna landing page** (menu "Content").
 - Keduanya membaca/menulis ke Supabase project yang sama.
 
 ---
@@ -39,7 +40,9 @@ langkah isi manual:
 Yang **masih perlu kamu jalankan manual** (satu kali saja):
 
 1. Buka **SQL Editor** di Supabase Dashboard, jalankan isi
-   `supabase/schema.sql`, lalu jalankan `supabase/landing_konten.sql`.
+   `supabase/schema.sql`, lalu `supabase/landing_konten.sql`, lalu
+   `supabase/update_2.sql` (fitur barang freetext, Inventaris, Jadwal
+   Konten, dan warna tampilan — aman dijalankan meski sudah ada data).
 2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
    selesai di-deploy (lihat langkah 5).
 
@@ -73,10 +76,19 @@ update public.profiles set role = 'super_admin'
 where email = 'email_kamu@contoh.com';
 ```
 
-Setelah jadi Super Admin, menu **Konten Website** dan **Pengguna** akan
-muncul di sidebar. Detail fitur & validasi ada di komentar dalam kode;
-ringkasannya sama seperti sebelumnya (stok tidak bisa minus, kategori
-tidak bisa dihapus kalau masih dipakai, dll).
+Setelah jadi Super Admin, sidebar akan menampilkan menu lengkap:
+
+- **Keuangan** → Transaksi (semua role), Kategori Transaksi (Super Admin)
+- **Persediaan** → Barang & Stok (semua role, kini dengan input nama
+  barang bebas ketik), Inventaris (aset di luar stok jual-beli, semua
+  role bisa tambah), Kategori Barang (Super Admin)
+- **Content** → Jadwal Konten (rencana unggahan media sosial, semua
+  role), Update Konten (isi & warna landing page, Super Admin)
+- **Admin** → Pengguna (Super Admin)
+
+Editor hanya melihat menu yang boleh diaksesnya; menu khusus Super
+Admin otomatis tersembunyi untuk Editor. Detail validasi ada di
+komentar dalam kode.
 
 ## 3. Hubungkan landing page ke database
 
@@ -100,19 +112,24 @@ atau build apa pun, murni HTML+JS biasa).
 > di dalam HTML-nya sendiri sebagai cadangan, lalu diganti otomatis
 > begitu database berhasil diakses.
 
-## 4. Mengelola isi landing page & media sosial
+## 4. Mengelola isi landing page, warna, & media sosial
 
-Login ke aplikasi admin sebagai Super Admin → menu **Konten Website**.
-Ada 6 tab: Hero, Tentang, Menu, Ulasan, Lokasi & Kontak, Media Sosial.
-Setiap tab punya form biasa (bukan kode/JSON) — isi, klik **Simpan
-Bagian Ini**, dan landing page langsung menampilkan versi terbaru saat
-di-refresh.
+Login ke aplikasi admin sebagai Super Admin → menu **Content → Update
+Konten**. Ada 7 tab: Hero, Tentang, Menu, Ulasan, Lokasi & Kontak,
+Media Sosial, dan **Tampilan (Warna)**. Setiap tab punya form biasa
+(bukan kode/JSON) — isi, klik **Simpan Bagian Ini**, dan landing page
+langsung menampilkan versi terbaru saat di-refresh.
 
 Untuk **media sosial**: tambahkan baris baru, pilih platform
 (Instagram/Facebook/TikTok/WhatsApp/YouTube/Lainnya), isi link
 lengkapnya (harus diawali `http://` atau `https://`). Bagian "Ikuti
 Kami" di landing page otomatis muncul begitu ada minimal 1 akun yang
 diisi, dan otomatis tersembunyi kalau daftarnya dikosongkan lagi.
+
+Untuk **warna**: tab "Tampilan" punya 2 color-picker — warna latar
+utama dan warna aksen (tombol/judul). Landing page otomatis menghitung
+variasi warna yang lebih terang untuk bagian selang-seling, jadi cukup
+atur 2 warna ini saja supaya seluruh halaman tetap serasi.
 
 ## 5. Deploy gratis supaya online
 
@@ -174,3 +191,17 @@ GitHub Actions-nya), datanya tetap aman sampai 1 tahun dan tinggal klik
   satu-satunya Super Admin yang tersisa.
 - Semua tautan media sosial & Google Maps divalidasi harus berupa URL
   (`http://` atau `https://`) sebelum bisa disimpan.
+- Barang di "Barang & Stok" bisa diketik bebas (freetext) — kalau nama
+  yang diketik belum ada, sistem otomatis membuat barang baru; kalau
+  sudah ada (dicocokkan tanpa peduli huruf besar/kecil), stok yang
+  sama yang dipakai, bukan duplikat baru. Kategori boleh dikosongkan
+  saat dibuat cepat, Super Admin bisa melengkapinya belakangan.
+- "Stok Keluar" tidak bisa dipakai untuk nama barang yang belum pernah
+  ada (karena stoknya memang belum ada), sistem akan menolak dan
+  meminta memilih/mengetik barang yang sudah tercatat.
+- Warna latar & aksen di tab "Tampilan" divalidasi harus format warna
+  hex yang sah (dijamin otomatis karena memakai color-picker bawaan
+  browser).
+- Jadwal Konten & Inventaris bisa ditambah oleh Editor maupun Super
+  Admin (risikonya rendah, bukan data uang/stok); Inventaris tetap
+  membatasi hapus data hanya untuk Super Admin.

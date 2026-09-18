@@ -137,10 +137,22 @@ export default function Keuangan() {
       <div className="toolbar">
         <label htmlFor="bulan">Bulan</label>
         <input id="bulan" type="month" className="input" value={bulan} onChange={(e) => setBulan(e.target.value)} />
-        <div className="toolbar-ringkasan">
-          <span className="stat-hijau">Masuk: {formatRupiah(totalMasuk)}</span>
-          <span className="stat-merah">Keluar: {formatRupiah(totalKeluar)}</span>
-          <span>Saldo: {formatRupiah(totalMasuk - totalKeluar)}</span>
+      </div>
+
+      <div className="grid-kartu-stat">
+        <div className="kartu-stat">
+          <div className="stat-label">Kas Masuk ({bulan})</div>
+          <div className="stat-angka stat-hijau">{formatRupiah(totalMasuk)}</div>
+        </div>
+        <div className="kartu-stat">
+          <div className="stat-label">Kas Keluar ({bulan})</div>
+          <div className="stat-angka stat-merah">{formatRupiah(totalKeluar)}</div>
+        </div>
+        <div className="kartu-stat">
+          <div className="stat-label">Saldo ({bulan})</div>
+          <div className={`stat-angka ${totalMasuk - totalKeluar >= 0 ? 'stat-hijau' : 'stat-merah'}`}>
+            {formatRupiah(totalMasuk - totalKeluar)}
+          </div>
         </div>
       </div>
 
@@ -208,16 +220,11 @@ export default function Keuangan() {
               onChange={(e) => setForm({ ...form, kategori_id: e.target.value })}
             >
               <option value="">Pilih kategori...</option>
-              <optgroup label="Kas Masuk">
-                {kategoriList.filter((k) => k.tipe === 'masuk').map((k) => (
-                  <option key={k.id} value={k.id}>{k.nama}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Kas Keluar">
-                {kategoriList.filter((k) => k.tipe === 'keluar').map((k) => (
-                  <option key={k.id} value={k.id}>{k.nama}</option>
-                ))}
-              </optgroup>
+              {kategoriList.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama} {k.tipe === 'masuk' ? '(Kas Masuk)' : '(Kas Keluar)'}
+                </option>
+              ))}
             </select>
             {errors.kategori_id && <div className="pesan-error">{errors.kategori_id}</div>}
 

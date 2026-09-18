@@ -20,7 +20,20 @@ const FORM_BARANG_KOSONG = {
   id: null, kode: '', nama: '', kategori_id: '', satuan: '',
   stok_awal: 0, stok_minimum: 0, harga_beli: '', harga_jual: '', aktif: true,
 }
-const FORM_MUTASI_KOSONG = { barang_id: '', tipe: 'masuk', tanggal: todayISO(), jumlah: '', keterangan: '' }
+const FORM_MUTASI_KOSONG = { nama_barang: '', tipe: 'masuk', tanggal: todayISO(), jumlah: '', keterangan: '' }
+
+// Bikin kode unik otomatis dari nama, untuk barang yang dibuat cepat
+// lewat input freetext (tanpa lewat form "Tambah Barang" lengkap).
+function buatKodeOtomatis(nama) {
+  const slug = (nama || '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-')
+    .replace(/(^-+|-+$)/g, '')
+    .slice(0, 20)
+  const acak = Math.random().toString(36).slice(2, 6).toUpperCase()
+  return `${slug || 'BRG'}-${acak}`
+}
 
 export default function Persediaan() {
   const { isSuperAdmin, profile } = useAuth()
@@ -58,11 +71,11 @@ export default function Persediaan() {
 
   useEffect(() => { muatData() }, [])
 
-  // ---------- Modal Barang (super admin) ----------
+  // ---------- Modal Barang (super admin, form lengkap) ----------
   const bukaTambahBarang = () => { setFormBarang(FORM_BARANG_KOSONG); setErrorsBarang({}); setModalBarang(true) }
   const bukaEditBarang = (b) => {
     setFormBarang({
-      id: b.id, kode: b.kode, nama: b.nama, kategori_id: b.kategori_id, satuan: b.satuan,
+      id: b.id, kode: b.kode, nama: b.nama, kategori_id: b.kategori_id || '', satuan: b.satuan,
       stok_awal: 0, stok_minimum: b.stok_minimum, harga_beli: b.harga_beli ?? '', harga_jual: b.harga_jual ?? '', aktif: b.aktif,
     })
     setErrorsBarang({})
@@ -74,7 +87,6 @@ export default function Persediaan() {
     const validasi = jalankanValidasi({
       kode: wajibDiisi(formBarang.kode, 'Kode barang'),
       nama: wajibDiisi(formBarang.nama, 'Nama barang'),
-      kategori_id: wajibDiisi(formBarang.kategori_id, 'Kategori'),
       satuan: wajibDiisi(formBarang.satuan, 'Satuan'),
       stok_minimum: angkaTidakNegatif(formBarang.stok_minimum, 'Stok minimum'),
       harga_beli: angkaTidakNegatif(formBarang.harga_beli, 'Harga beli'),
@@ -87,7 +99,7 @@ export default function Persediaan() {
     const payload = {
       kode: formBarang.kode.trim(),
       nama: formBarang.nama.trim(),
-      kategori_id: formBarang.kategori_id,
+      kategori_id: formBarang.kategori_id || null,
       satuan: formBarang.satuan.trim(),
       stok_minimum: formBarang.stok_minimum || 0,
       harga_beli: formBarang.harga_beli === '' ? null : formBarang.harga_beli,
@@ -146,22 +158,28 @@ export default function Persediaan() {
     muatData()
   }
 
-  // ---------- Modal Mutasi Stok (super admin & editor) ----------
-  const bukaMutasi = (barangId) => {
-    setFormMutasi({ ...FORM_MUTASI_KOSONG, barang_id: barangId || '' })
+  // ---------- Modal Mutasi Stok (super admin & editor, nama barang freetext) ----------
+  const bukaMutasi = (barang) => {
+    setFormMutasi({ ...FORM_MUTASI_KOSONG, nama_barang: barang ? barang.nama : '' })
     setErrorsMutasi({})
     setModalMutasi(true)
   }
 
-  const barangTerpilih = barangList.find((b) => String(b.id) === String(formMutasi.barang_id))
+  const namaDiketik = formMutasi.nama_barang.trim().toLowerCase()
+  const barangTerpilih = barangList.find((b) => b.nama.trim().toLowerCase() === namaDiketik)
+  const barangBaruAkanDibuat = formMutasi.nama_barang.trim() !== '' && !barangTerpilih
 
   const simpanMutasi = async (e) => {
     e.preventDefault()
     const validasi = jalankanValidasi({
-      barang_id: wajibDiisi(formMutasi.barang_id, 'Barang'),
+      nama_barang: wajibDiisi(formMutasi.nama_barang, 'Nama barang'),
       tanggal: tanggalTidakBolehFuture(formMutasi.tanggal, 'Tanggal'),
       jumlah: harusAngkaPositif(formMutasi.jumlah, 'Jumlah'),
     })
+
+    if (!validasi.nama_barang && formMutasi.tipe === 'keluar' && barangBaruAkanDibuat) {
+      validasi.nama_barang = 'Barang ini belum pernah tercatat, jadi belum ada stoknya. Untuk "Stok Keluar", pilih/ketik nama barang yang sudah ada.'
+    }
     // Cek stok cukup di sisi aplikasi dulu, supaya pesan muncul cepat
     // (database tetap jadi penjaga akhir lewat trigger).
     if (!validasi.jumlah && formMutasi.tipe === 'keluar' && barangTerpilih) {
@@ -173,8 +191,35 @@ export default function Persediaan() {
     if (adaError(validasi)) return
 
     setMenyimpanMutasi(true)
+
+    let barangId = barangTerpilih?.id
+
+    // Barang belum pernah ada -- buat cepat dengan data minimal.
+    // Kategori & harga bisa dilengkapi Super Admin belakangan lewat "Ubah".
+    if (!barangId) {
+      const { data: barangBaru, error: errorBarang } = await supabase
+        .from('barang')
+        .insert({
+          kode: buatKodeOtomatis(formMutasi.nama_barang),
+          nama: formMutasi.nama_barang.trim(),
+          kategori_id: null,
+          satuan: 'pcs',
+          stok_minimum: 0,
+          aktif: true,
+        })
+        .select('id')
+        .single()
+
+      if (errorBarang) {
+        setMenyimpanMutasi(false)
+        setErrorsMutasi({ nama_barang: pesanErrorRamah(errorBarang) })
+        return
+      }
+      barangId = barangBaru.id
+    }
+
     const { error } = await supabase.from('mutasi_stok').insert({
-      barang_id: formMutasi.barang_id,
+      barang_id: barangId,
       tipe: formMutasi.tipe,
       tanggal: formMutasi.tanggal,
       jumlah: formMutasi.jumlah,
@@ -220,7 +265,7 @@ export default function Persediaan() {
         {memuat ? (
           <p className="teks-muted">Memuat...</p>
         ) : barangList.length === 0 ? (
-          <p className="teks-muted">Belum ada barang. Tambahkan barang terlebih dahulu.</p>
+          <p className="teks-muted">Belum ada barang. Ketik nama barang di "+ Stok Masuk/Keluar" untuk mulai mencatat.</p>
         ) : (
           <table className="tabel">
             <thead>
@@ -235,7 +280,7 @@ export default function Persediaan() {
                   <tr key={b.id}>
                     <td>{b.kode}</td>
                     <td>{b.nama}</td>
-                    <td>{b.kategori_barang?.nama}</td>
+                    <td>{b.kategori_barang?.nama || <span className="teks-muted">-</span>}</td>
                     <td className={menipis ? 'stat-merah' : ''}>
                       {formatAngka(b.stok_saat_ini)} {b.satuan}
                       {menipis && <span className="lencana lencana-kuning" style={{ marginLeft: 8 }}>Menipis</span>}
@@ -243,7 +288,7 @@ export default function Persediaan() {
                     <td>{b.harga_jual ? formatRupiah(b.harga_jual) : '-'}</td>
                     <td>{b.aktif ? <span className="lencana lencana-hijau">Aktif</span> : <span className="lencana">Nonaktif</span>}</td>
                     <td className="kolom-aksi">
-                      <button type="button" className="btn-tautan" onClick={() => bukaMutasi(b.id)}>Stok +/-</button>
+                      <button type="button" className="btn-tautan" onClick={() => bukaMutasi(b)}>Stok +/-</button>
                       <button type="button" className="btn-tautan" onClick={() => bukaRiwayat(b)}>Riwayat</button>
                       {isSuperAdmin && <button type="button" className="btn-tautan" onClick={() => bukaEditBarang(b)}>Ubah</button>}
                       {isSuperAdmin && <button type="button" className="btn-tautan btn-tautan-bahaya" onClick={() => setAkanDihapus(b)}>Hapus</button>}
@@ -256,7 +301,7 @@ export default function Persediaan() {
         )}
       </div>
 
-      {/* Modal tambah/ubah barang */}
+      {/* Modal tambah/ubah barang (form lengkap, khusus Super Admin) */}
       {modalBarang && (
         <Modal title={formBarang.id ? 'Ubah Barang' : 'Tambah Barang'} onClose={() => setModalBarang(false)} lebar={560}>
           <form onSubmit={simpanBarang} noValidate>
@@ -280,15 +325,14 @@ export default function Persediaan() {
               onChange={(e) => setFormBarang({ ...formBarang, nama: e.target.value })} placeholder="Bir Pletok Original 350ml" />
             {errorsBarang.nama && <div className="pesan-error">{errorsBarang.nama}</div>}
 
-            <label htmlFor="kategoriBarang">Kategori</label>
-            <select id="kategoriBarang" className={errorsBarang.kategori_id ? 'input input-error' : 'input'}
+            <label htmlFor="kategoriBarang">Kategori (opsional)</label>
+            <select id="kategoriBarang" className="input"
               value={formBarang.kategori_id} onChange={(e) => setFormBarang({ ...formBarang, kategori_id: e.target.value })}>
-              <option value="">Pilih kategori...</option>
+              <option value="">Tanpa kategori</option>
               {kategoriList.map((k) => (
                 <option key={k.id} value={k.id}>{k.nama} ({k.jenis === 'produk_jadi' ? 'Produk Jadi' : 'Bahan Baku'})</option>
               ))}
             </select>
-            {errorsBarang.kategori_id && <div className="pesan-error">{errorsBarang.kategori_id}</div>}
 
             <div className="form-grid-2">
               {!formBarang.id && (
@@ -337,19 +381,31 @@ export default function Persediaan() {
         </Modal>
       )}
 
-      {/* Modal mutasi stok */}
+      {/* Modal mutasi stok -- nama barang freetext, siapa saja (Editor & Super Admin) bisa pakai */}
       {modalMutasi && (
         <Modal title="Catat Stok Masuk/Keluar" onClose={() => setModalMutasi(false)}>
           <form onSubmit={simpanMutasi} noValidate>
-            <label htmlFor="barangMutasi">Barang</label>
-            <select id="barangMutasi" className={errorsMutasi.barang_id ? 'input input-error' : 'input'}
-              value={formMutasi.barang_id} onChange={(e) => setFormMutasi({ ...formMutasi, barang_id: e.target.value })}>
-              <option value="">Pilih barang...</option>
+            <label htmlFor="namaBarangMutasi">Nama barang</label>
+            <input
+              id="namaBarangMutasi"
+              list="daftar-nama-barang"
+              className={errorsMutasi.nama_barang ? 'input input-error' : 'input'}
+              value={formMutasi.nama_barang}
+              onChange={(e) => setFormMutasi({ ...formMutasi, nama_barang: e.target.value })}
+              placeholder="Ketik nama barang..."
+              autoComplete="off"
+            />
+            <datalist id="daftar-nama-barang">
               {barangList.filter((b) => b.aktif).map((b) => (
-                <option key={b.id} value={b.id}>{b.nama} (stok: {formatAngka(b.stok_saat_ini)} {b.satuan})</option>
+                <option key={b.id} value={b.nama} />
               ))}
-            </select>
-            {errorsMutasi.barang_id && <div className="pesan-error">{errorsMutasi.barang_id}</div>}
+            </datalist>
+            {errorsMutasi.nama_barang && <div className="pesan-error">{errorsMutasi.nama_barang}</div>}
+            {barangBaruAkanDibuat && formMutasi.tipe === 'masuk' && (
+              <p className="teks-muted" style={{ fontSize: '0.85rem', marginTop: 4 }}>
+                Barang baru — akan otomatis ditambahkan ke daftar barang saat disimpan.
+              </p>
+            )}
 
             <label>Jenis mutasi</label>
             <div className="pilihan-radio">

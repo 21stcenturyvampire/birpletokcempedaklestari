@@ -28,11 +28,13 @@ export default function Layout() {
           {isSuperAdmin && <NavLink to="/keuangan/kategori">Kategori Transaksi</NavLink>}
           <div className="nav-group-label">Persediaan</div>
           <NavLink to="/persediaan">Barang & Stok</NavLink>
+          <NavLink to="/persediaan/inventaris">Inventaris</NavLink>
           {isSuperAdmin && <NavLink to="/persediaan/kategori">Kategori Barang</NavLink>}
+          <div className="nav-group-label">Content</div>
+          <NavLink to="/konten/jadwal">Jadwal Konten</NavLink>
+          {isSuperAdmin && <NavLink to="/konten/update">Update Konten</NavLink>}
           {isSuperAdmin && (
             <>
-              <div className="nav-group-label">Website</div>
-              <NavLink to="/konten-website">Konten Website</NavLink>
               <div className="nav-group-label">Admin</div>
               <NavLink to="/pengguna">Pengguna</NavLink>
             </>
