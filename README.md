@@ -42,7 +42,11 @@ Yang **masih perlu kamu jalankan manual** (satu kali saja):
 1. Buka **SQL Editor** di Supabase Dashboard, jalankan isi
    `supabase/schema.sql`, lalu `supabase/landing_konten.sql`, lalu
    `supabase/update_2.sql` (fitur barang freetext, Inventaris, Jadwal
-   Konten, dan warna tampilan — aman dijalankan meski sudah ada data).
+   Konten, dan warna tampilan — aman dijalankan meski sudah ada data),
+   lalu `supabase/update_konten_baru.sql` (mengisi konten landing page
+   terbaru — Bir Pletok, Biji Ketapang, lilin aromaterapi, dll — sesuai
+   dokumen produk. Isi ini juga bisa diedit lagi kapan saja lewat menu
+   **Content → Update Konten** di aplikasi admin).
 2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
    selesai di-deploy (lihat langkah 5).
 
@@ -111,6 +115,13 @@ atau build apa pun, murni HTML+JS biasa).
 > landing page tidak akan tampil kosong — ia sudah punya konten bawaan
 > di dalam HTML-nya sendiri sebagai cadangan, lalu diganti otomatis
 > begitu database berhasil diakses.
+
+Folder `landing-page/images/` berisi foto produk (Bir Pletok, Biji
+Ketapang, lilin aromaterapi) yang dipakai di section Menu — jaga folder
+ini tetap ikut ter-upload bersama `index.html` saat deploy. Untuk
+ganti/tambah foto produk lain, upload file baru ke folder ini lalu
+tulis namanya (mis. `images/nama-file.jpg`) di kolom "Gambar" pada
+menu **Content → Update Konten** di aplikasi admin.
 
 ## 4. Mengelola isi landing page, warna, & media sosial
 

@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bir Pletok Cempedak Lestari — Kedai Rempah Betawi di Jagakarsa</title>
-<meta name="description" content="Bir Pletok Cempedak Lestari, kedai rempah Betawi di Srengseng Sawah, Jagakarsa. Bir pletok hangat racikan lebih dari 10 rempah, tanpa alkohol, untuk dine-in dan takeaway.">
+<title>Bir Pletok Cempedak Lestari — Etalase Betawi di Jagakarsa</title>
+<meta name="description" content="Bir Pletok Cempedak Lestari, etalase Betawi di Srengseng Sawah, Jagakarsa. Bir pletok, biji ketapang, lilin aromaterapi rempah, dan oleh-oleh khas Betawi lainnya.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Karla:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -39,6 +39,7 @@
     font-size:16px;
     line-height:1.6;
     -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
   }
 
   h1,h2,h3{
@@ -54,6 +55,7 @@
     max-width:var(--max);
     margin:0 auto;
     padding:0 24px;
+    position:relative;
   }
 
   img,svg{ display:block; max-width:100%; }
@@ -263,9 +265,57 @@
     border-top:1px solid rgba(200,155,60,0.25);
     padding-top:12px;
   }
+  .manfaat-box{
+    margin-top:22px;
+    border-top:1px solid rgba(200,155,60,0.25);
+    padding-top:18px;
+  }
+  .manfaat-box h3{
+    font-size:1.05rem;
+    color:var(--gold-300);
+    margin-bottom:12px;
+  }
+  .manfaat-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:grid;
+    gap:8px;
+    font-size:0.92rem;
+    color:var(--cream-100);
+  }
+  .manfaat-list li{ display:flex; align-items:baseline; gap:8px; }
+  .manfaat-list li::before{
+    content:"✓";
+    color:var(--gold-500);
+    font-size:0.8rem;
+    flex:none;
+    transform:translateY(-1px);
+  }
 
   /* ---------- Menu ---------- */
-  #menu{ background:var(--maroon-950); }
+  #menu{ background:var(--maroon-950); position:relative; overflow:hidden; }
+  .menu-wrap{ position:relative; }
+  .menu-float{
+    position:absolute;
+    width:180px;
+    border-radius:6px;
+    box-shadow:0 22px 40px rgba(0,0,0,0.45);
+    border:4px solid var(--paper);
+    z-index:1;
+  }
+  .menu-float.kiri{
+    left:-150px;
+    top:-30px;
+    transform:rotate(-9deg);
+  }
+  .menu-float.kanan{
+    right:-150px;
+    bottom:-20px;
+    transform:rotate(8deg);
+  }
+  @media (max-width: 1240px){
+    .menu-float{ display:none; }
+  }
   .menu-board{
     background:var(--paper);
     color:var(--ink-900);
@@ -296,10 +346,18 @@
   }
   .menu-item{
     display:flex;
-    align-items:baseline;
-    gap:10px;
-    padding:9px 0;
+    align-items:center;
+    gap:14px;
+    padding:10px 0;
   }
+  .menu-item img{
+    width:48px; height:48px;
+    object-fit:cover;
+    border-radius:6px;
+    flex:none;
+    box-shadow:0 3px 8px rgba(44,21,12,0.18);
+  }
+  .menu-item .info{ display:flex; align-items:baseline; gap:10px; flex:1; min-width:0; }
   .menu-item .name{
     font-weight:600;
   }
@@ -320,6 +378,12 @@
     font-weight:600;
     white-space:nowrap;
     color:var(--secang-600);
+  }
+  .menu-item .price.menyusul{
+    font-weight:500;
+    font-style:italic;
+    color:rgba(44,21,12,0.6);
+    font-size:0.85rem;
   }
   .menu-foot{
     margin-top:22px;
@@ -488,9 +552,9 @@
   <!-- HERO -->
   <section class="hero wrap">
     <div class="hero-copy">
-      <p class="kicker" id="hero-kicker">Kedai rempah Betawi · Srengseng Sawah, Jagakarsa</p>
+      <p class="kicker" id="hero-kicker">Etalase Betawi · Srengseng Sawah, Jagakarsa</p>
       <h1 id="hero-judul">Sebelas rempah, satu kehangatan Betawi</h1>
-      <p class="lead" id="hero-deskripsi">Bir Pletok Cempedak Lestari meracik bir pletok asli, minuman tradisional Betawi tanpa alkohol, dari jahe, kayu secang, dan rempah pilihan lain — diseduh hangat untuk disantap di kedai atau dibawa pulang.</p>
+      <p class="lead" id="hero-deskripsi">Bir Pletok Cempedak Lestari meracik bir pletok asli, minuman tradisional Betawi tanpa alkohol, dari jahe, kayu secang, dan rempah pilihan lain. Bisa langsung diminum ataupun dibawa pulang.</p>
       <div class="rating-chip">
         <svg viewBox="0 0 20 20" fill="#c89b3c" aria-hidden="true"><path d="M10 1.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9L10 15l-5.2 2.8 1-5.9L1.5 7.7l5.9-.8L10 1.5z"/></svg>
         <span id="hero-rating-teks">4,4 dari 14 ulasan Google</span>
@@ -538,43 +602,104 @@
         <div class="section-head">
           <h2 id="tentang-judul">Bir tanpa alkohol, warisan yang tetap hidup</h2>
         </div>
-        <p id="tentang-p1">Pada masa kolonial, orang Belanda gemar menikmati bir dan wine dalam setiap perayaan. Masyarakat Betawi yang mayoritas Muslim tidak bisa ikut minum minuman beralkohol itu, sehingga mereka meracik versi mereka sendiri dari rempah nusantara — hangat di badan, berbusa saat dikocok, namun sepenuhnya halal.</p>
-        <p id="tentang-p2">Begitulah bir pletok lahir: warna merahnya berasal dari kayu secang, bukan anggur, dan bunyi "pletok" datang dari kocokan bahan-bahannya di dalam bambu berisi es. Di Cempedak Lestari, resep itu masih kami jaga — diseduh setiap hari, disajikan hangat atau dingin, untuk siapa saja yang mampir di Srengseng Sawah.</p>
+        <p id="tentang-p1">Pada masa kolonial, orang Belanda gemar menikmati bir dan wine dalam setiap perayaan. Masyarakat Betawi yang mayoritas Muslim tidak bisa ikut minum minuman beralkohol itu, sehingga mereka meracik versi mereka sendiri dari rempah nusantara. Banyaknya rempah-rempah sebagai bahan baku penyusunnya, menjadikan bir pletok ke dalam salah satu minuman kesehatan serta halal.</p>
+        <p id="tentang-p2">Kenapa dinamakan Bir Pletok? Kata Bir sendiri diambil dari kata Bi'run (Bahasa Arab) yang mempunyai arti sumber mata air, bukan diambil dari kata Beer yang mempunyai arti bir yaitu minuman yang memabukkan. Sedangkan kata Pletok diambil dari racikan minuman Bir yang sudah jadi, dimasukkan ke dalam ketel ditambah es batu kemudian dikocok-kocok dan mengeluarkan bunyi pletok-pletok.</p>
       </div>
       <div class="spice-box">
         <h3 id="tentang-judul-rempah">Racikan rempah kami</h3>
         <ul class="spice-list" id="daftar-rempah">
-          <li>Jahe</li><li>Kayu secang</li><li>Serai</li><li>Kayu manis</li><li>Cengkeh</li>
-          <li>Kapulaga</li><li>Biji pala</li><li>Daun pandan</li><li>Daun jeruk</li><li>Lada</li><li>Gula aren</li>
+          <li>Jahe</li><li>Serai</li><li>Cengkeh</li><li>Biji pala</li><li>Daun jeruk</li>
+          <li>Daun pandan</li><li>Kayu secang</li><li>Kayu manis</li><li>Kayu masoyi</li><li>Kapulaga</li><li>Lada</li>
         </ul>
         <p class="spice-note" id="tentang-catatan">Direbus perlahan lalu disaring, tanpa fermentasi dan tanpa alkohol — aman diminum semua kalangan, dari anak-anak hingga lansia.</p>
+        <div class="manfaat-box">
+          <h3 id="tentang-judul-manfaat">Manfaat Bir Pletok</h3>
+          <ul class="manfaat-list" id="daftar-manfaat">
+            <li>Dapat menghangatkan tubuh</li>
+            <li>Meredakan nyeri lambung</li>
+            <li>Memperlancar sistem pencernaan</li>
+            <li>Memperlancar peredaran darah</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
 
   <!-- MENU -->
   <section id="menu">
-    <div class="wrap">
+    <div class="wrap menu-wrap">
+      <img class="menu-float kiri" id="menu-gambar-kiri" src="images/produk-bir-pletok-segelas.jpg" alt="Bir Pletok disajikan dingin">
+      <img class="menu-float kanan" id="menu-gambar-kanan" src="images/produk-biji-ketapang-pouch.jpg" alt="Biji Ketapang khas Betawi">
+
       <div class="section-head">
-        <h2>Menu di kedai</h2>
-        <p>Beberapa yang paling sering dipesan — tersedia untuk dine-in maupun takeaway.</p>
+        <h2>Menu di etalase kami</h2>
+        <p>Minuman khas dan oleh-oleh Betawi — tersedia untuk dibawa pulang maupun jadi hampers.</p>
       </div>
       <div class="menu-board">
         <div id="menu-kategori-list">
           <div class="menu-cat">
-            <h3>Bir pletok</h3>
-            <div class="menu-item"><span class="name">Bir Pletok Original<small>Hangat atau dingin, rasa rempah klasik</small></span><span class="leader"></span><span class="price">Rp 15.000</span></div>
-            <div class="menu-item"><span class="name">Bir Pletok Susu Jahe<small>Perpaduan susu dan jahe yang lebih lembut</small></span><span class="leader"></span><span class="price">Rp 18.000</span></div>
-            <div class="menu-item"><span class="name">Bir Pletok Secang Pekat<small>Kayu secang lebih banyak, warna lebih merah</small></span><span class="leader"></span><span class="price">Rp 18.000</span></div>
+            <h3>Bir Pletok</h3>
+            <div class="menu-item">
+              <img src="images/produk-bir-pletok-segelas-thumb.jpg" alt="Bir Pletok 300ml">
+              <div class="info"><span class="name">Bir Pletok 300ml</span><span class="leader"></span></div>
+              <span class="price">Rp 15.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-bir-pletok-botol-thumb.jpg" alt="Bir Pletok 500ml">
+              <div class="info"><span class="name">Bir Pletok 500ml</span><span class="leader"></span></div>
+              <span class="price">Rp 23.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-bir-pletok-botol-thumb.jpg" alt="Bir Pletok 600ml">
+              <div class="info"><span class="name">Bir Pletok 600ml</span><span class="leader"></span></div>
+              <span class="price">Rp 25.000</span>
+            </div>
           </div>
           <div class="menu-cat">
-            <h3>Teman minum</h3>
-            <div class="menu-item"><span class="name">Kerak Telor<small>Telor bebek atau ayam, disangrai di tempat</small></span><span class="leader"></span><span class="price">Rp 25.000</span></div>
-            <div class="menu-item"><span class="name">Gado-Gado Betawi<small>Sayur rebus, lontong, bumbu kacang</small></span><span class="leader"></span><span class="price">Rp 20.000</span></div>
-            <div class="menu-item"><span class="name">Pisang Goreng Rempah<small>Cocok disantap selagi bir pletok masih hangat</small></span><span class="leader"></span><span class="price">Rp 12.000</span></div>
+            <h3>Biji Ketapang</h3>
+            <div class="menu-item">
+              <img src="images/produk-biji-ketapang-pouch-thumb.jpg" alt="Biji Ketapang 200gr">
+              <div class="info"><span class="name">Biji Ketapang 200gr</span><span class="leader"></span></div>
+              <span class="price">Rp 25.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-biji-ketapang-toples-thumb.jpg" alt="Biji Ketapang 300gr">
+              <div class="info"><span class="name">Biji Ketapang 300gr</span><span class="leader"></span></div>
+              <span class="price">Rp 35.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-biji-ketapang-pouch-thumb.jpg" alt="Biji Ketapang 500gr">
+              <div class="info"><span class="name">Biji Ketapang 500gr</span><span class="leader"></span></div>
+              <span class="price">Rp 55.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-biji-ketapang-toples-thumb.jpg" alt="Biji Ketapang 1kg">
+              <div class="info"><span class="name">Biji Ketapang 1kg</span><span class="leader"></span></div>
+              <span class="price">Rp 110.000</span>
+            </div>
+          </div>
+          <div class="menu-cat">
+            <h3>Oleh-oleh &amp; Hampers</h3>
+            <div class="menu-item">
+              <div class="info"><span class="name">Gantungan Kunci Ondel-Ondel</span><span class="leader"></span></div>
+              <span class="price">Rp 25.000</span>
+            </div>
+            <div class="menu-item">
+              <img src="images/produk-lilin-aromaterapi-thumb.jpg" alt="Lilin aromaterapi dari rempah Bir Pletok">
+              <div class="info"><span class="name">Lilin Aromaterapi Rempah Bir Pletok</span><span class="leader"></span></div>
+              <span class="price">Rp 55.000</span>
+            </div>
+            <div class="menu-item">
+              <div class="info"><span class="name">Bahan Bir Pletok</span><span class="leader"></span></div>
+              <span class="price menyusul">Harga menyusul</span>
+            </div>
+            <div class="menu-item">
+              <div class="info"><span class="name">Hampers</span><span class="leader"></span></div>
+              <span class="price menyusul">Harga menyusul</span>
+            </div>
           </div>
         </div>
-        <p class="menu-foot" id="menu-catatan-kaki">Harga dapat berubah sewaktu-waktu. Hubungi kedai untuk menu lengkap dan ketersediaan harian.</p>
+        <p class="menu-foot" id="menu-catatan-kaki">Harga dapat berubah sewaktu-waktu. Hubungi kami untuk menu lengkap dan ketersediaan harian.</p>
       </div>
     </div>
   </section>
@@ -626,7 +751,7 @@
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-            <div><div class="label">Jam buka</div><div class="value" id="lokasi-jam">Buka setiap hari mulai pukul 10.00 — jam tutup dapat berbeda tiap hari, cek Google Maps untuk status terkini.</div></div>
+            <div><div class="label">Jam buka</div><div class="value" id="lokasi-jam">08.00 – 17.00 WIB</div></div>
           </li>
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5c0 8.3 6.7 15 15 15l3-4-6-3-2 2c-2.5-1.3-4.7-3.5-6-6l2-2-3-6-4 0"/></svg>
@@ -635,6 +760,10 @@
           <li>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 8l9 6 9-6"/></svg>
             <div><div class="label">Layanan</div><div class="value" id="lokasi-layanan">Dine-in dan takeaway</div></div>
+          </li>
+          <li id="baris-catatan-lokasi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg>
+            <div><div class="label">Info tambahan</div><div class="value" id="lokasi-catatan">Menerima pesanan galon untuk acara: Keluarga, Pernikahan, Reuni, Arisan, Rapat Kantor, dll.</div></div>
           </li>
         </ul>
         <div class="loc-actions">
@@ -725,10 +854,21 @@
       const ul = document.getElementById('daftar-rempah')
       ul.innerHTML = d.daftar_rempah.map((r) => `<li>${escapeHtml(r)}</li>`).join('')
     }
+    const kotakManfaat = document.querySelector('.manfaat-box')
+    if (Array.isArray(d.manfaat) && d.manfaat.length){
+      teks('tentang-judul-manfaat', d.judul_manfaat || 'Manfaat Bir Pletok')
+      document.getElementById('daftar-manfaat').innerHTML = d.manfaat.map((m) => `<li>${escapeHtml(m)}</li>`).join('')
+      if (kotakManfaat) kotakManfaat.style.display = ''
+    } else if (Array.isArray(d.manfaat) && kotakManfaat) {
+      kotakManfaat.style.display = 'none'
+    }
   }
 
   function renderMenu(d){
     teks('menu-catatan-kaki', d.catatan_kaki)
+    if (d.gambar_kiri) document.getElementById('menu-gambar-kiri').src = d.gambar_kiri
+    if (d.gambar_kanan) document.getElementById('menu-gambar-kanan').src = d.gambar_kanan
+
     if (!Array.isArray(d.item) || !d.item.length) return
     const kategoriUrut = []
     const perKategori = {}
@@ -742,9 +882,12 @@
         <h3>${escapeHtml(kat)}</h3>
         ${perKategori[kat].map((it) => `
           <div class="menu-item">
-            <span class="name">${escapeHtml(it.nama || '')}${it.deskripsi ? `<small>${escapeHtml(it.deskripsi)}</small>` : ''}</span>
-            <span class="leader"></span>
-            <span class="price">${angkaKeRupiah(it.harga)}</span>
+            ${it.gambar ? `<img src="${escapeAttr(it.gambar)}" alt="${escapeAttr(it.nama || '')}">` : ''}
+            <div class="info">
+              <span class="name">${escapeHtml(it.nama || '')}${it.deskripsi ? `<small>${escapeHtml(it.deskripsi)}</small>` : ''}</span>
+              <span class="leader"></span>
+            </div>
+            ${it.harga ? `<span class="price">${angkaKeRupiah(it.harga)}</span>` : `<span class="price menyusul">Harga menyusul</span>`}
           </div>
         `).join('')}
       </div>
@@ -782,6 +925,14 @@
     teks('lokasi-telepon', d.telepon)
     teks('lokasi-layanan', d.layanan)
     teks('footer-telepon', d.telepon)
+
+    const barisCatatan = document.getElementById('baris-catatan-lokasi')
+    if (d.catatan){
+      teks('lokasi-catatan', d.catatan)
+      if (barisCatatan) barisCatatan.style.display = ''
+    } else if (d.catatan === '' && barisCatatan) {
+      barisCatatan.style.display = 'none'
+    }
 
     if (d.google_maps_url){
       document.getElementById('btn-maps-hero').href = d.google_maps_url
@@ -834,9 +985,6 @@
   function rgbKeHex(r, g, b){
     return '#' + [r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')
   }
-  // Campur warna dengan putih -- dipakai untuk menurunkan versi yang
-  // lebih terang dari 1 warna dasar (latar/aksen), supaya seluruh
-  // halaman tetap serasi walau hanya 2 warna yang diatur dari admin.
   function campurPutih(hex, persen){
     const rgb = hexKeRgb(hex)
     if (!rgb) return hex

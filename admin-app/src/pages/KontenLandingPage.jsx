@@ -62,7 +62,7 @@ export default function KontenLandingPage() {
       ;(data.item || []).forEach((it, i) => {
         if (!it.nama?.trim()) errs.push(`Menu baris ke-${i + 1}: nama wajib diisi.`)
         if (!it.kategori?.trim()) errs.push(`Menu baris ke-${i + 1}: kategori wajib diisi.`)
-        if (it.harga === '' || it.harga === undefined || Number(it.harga) < 0) errs.push(`Menu baris ke-${i + 1}: harga tidak valid.`)
+        if (it.harga !== '' && it.harga !== undefined && it.harga !== null && Number(it.harga) < 0) errs.push(`Menu baris ke-${i + 1}: harga tidak boleh negatif.`)
       })
     }
     if (section === 'ulasan') {
@@ -181,22 +181,46 @@ export default function KontenLandingPage() {
 
             <label>Catatan di bawah daftar rempah</label>
             <textarea className="input" rows={2} value={tentang.catatan_rempah || ''} onChange={(e) => ubahBagian('tentang', { ...tentang, catatan_rempah: e.target.value })} />
+
+            <label style={{ marginTop: 18 }}>Judul daftar manfaat</label>
+            <input className="input" value={tentang.judul_manfaat || ''} onChange={(e) => ubahBagian('tentang', { ...tentang, judul_manfaat: e.target.value })} placeholder="Manfaat Bir Pletok" />
+
+            <label>Daftar manfaat</label>
+            <RepeaterTeks value={tentang.manfaat} onChange={(v) => ubahBagian('tentang', { ...tentang, manfaat: v })} placeholder="Contoh: Dapat menghangatkan tubuh" />
+            <p className="teks-muted" style={{ fontSize: '0.85rem' }}>
+              Kosongkan daftar ini kalau tidak ingin menampilkan bagian "Manfaat" di landing page.
+            </p>
           </>
         )}
 
         {tab === 'menu' && (
           <>
-            <label>Daftar menu</label>
+            <div className="form-grid-2">
+              <div>
+                <label>Gambar mengambang — sisi kiri</label>
+                <input className="input" value={menu.gambar_kiri || ''} onChange={(e) => ubahBagian('menu', { ...menu, gambar_kiri: e.target.value })} placeholder="images/produk-bir-pletok-segelas.jpg" />
+              </div>
+              <div>
+                <label>Gambar mengambang — sisi kanan</label>
+                <input className="input" value={menu.gambar_kanan || ''} onChange={(e) => ubahBagian('menu', { ...menu, gambar_kanan: e.target.value })} placeholder="images/produk-biji-ketapang-pouch.jpg" />
+              </div>
+            </div>
+            <p className="teks-muted" style={{ fontSize: '0.85rem', marginTop: -6 }}>
+              Isi dengan nama file di folder <code>images/</code> milik landing page (mis. <code>images/produk-lilin-aromaterapi.jpg</code>), atau tautan URL gambar lengkap. Hanya tampil di layar lebar.
+            </p>
+
+            <label style={{ marginTop: 14 }}>Daftar menu</label>
             <RepeaterObjek
               value={menu.item}
               onChange={(v) => ubahBagian('menu', { ...menu, item: v })}
-              objekKosong={{ kategori: '', nama: '', deskripsi: '', harga: 0 }}
+              objekKosong={{ kategori: '', nama: '', deskripsi: '', harga: '', gambar: '' }}
               tambahLabel="+ Tambah Menu"
               fields={[
-                { key: 'kategori', label: 'Kategori', type: 'text', placeholder: 'Contoh: Bir pletok' },
-                { key: 'nama', label: 'Nama menu', type: 'text', placeholder: 'Contoh: Bir Pletok Original' },
-                { key: 'deskripsi', label: 'Deskripsi singkat', type: 'text', placeholder: 'Contoh: Hangat atau dingin' },
-                { key: 'harga', label: 'Harga (Rp)', type: 'uang', placeholder: '0' },
+                { key: 'kategori', label: 'Kategori', type: 'text', placeholder: 'Contoh: Bir Pletok' },
+                { key: 'nama', label: 'Nama menu', type: 'text', placeholder: 'Contoh: Bir Pletok 300ml' },
+                { key: 'deskripsi', label: 'Deskripsi singkat (opsional)', type: 'text', placeholder: 'Contoh: Hangat atau dingin' },
+                { key: 'harga', label: 'Harga (Rp) — kosongkan jika "harga menyusul"', type: 'uang', placeholder: '0' },
+                { key: 'gambar', label: 'Gambar baris ini (opsional)', type: 'text', placeholder: 'images/produk-bir-pletok-botol-thumb.jpg' },
               ]}
             />
 
@@ -254,6 +278,9 @@ export default function KontenLandingPage() {
 
             <label>Tautan Google Maps</label>
             <input className="input" value={lokasi.google_maps_url || ''} onChange={(e) => ubahBagian('lokasi', { ...lokasi, google_maps_url: e.target.value })} />
+
+            <label>Info tambahan (opsional)</label>
+            <textarea className="input" rows={2} value={lokasi.catatan || ''} onChange={(e) => ubahBagian('lokasi', { ...lokasi, catatan: e.target.value })} placeholder="Contoh: Menerima pesanan galon untuk acara Keluarga, Pernikahan, Reuni, Arisan, Rapat Kantor, dll." />
 
             <div className="form-grid-2">
               <div>
