@@ -28,6 +28,7 @@ export default function Layout() {
           {isSuperAdmin && <NavLink to="/keuangan/kategori">Kategori Transaksi</NavLink>}
           <div className="nav-group-label">Persediaan</div>
           <NavLink to="/persediaan">Barang & Stok</NavLink>
+          <NavLink to="/persediaan/bahan-produksi">Stok Bahan Produksi</NavLink>
           <NavLink to="/persediaan/inventaris">Inventaris</NavLink>
           {isSuperAdmin && <NavLink to="/persediaan/kategori">Kategori Barang</NavLink>}
           <div className="nav-group-label">Content</div>

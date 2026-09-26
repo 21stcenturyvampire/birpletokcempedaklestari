@@ -5,7 +5,8 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import InputUang from '../components/InputUang'
 import Notifikasi from '../components/Notifikasi'
-import { formatRupiah, formatTanggal, todayISO } from '../utils/format'
+import { formatRupiah, formatTanggal, formatBulanTahun, todayISO } from '../utils/format'
+import { exportTabelPdf } from '../utils/pdf'
 import { wajibDiisi, harusAngkaPositif, tanggalTidakBolehFuture, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
 const FORM_KOSONG = { id: null, tanggal: todayISO(), kategori_id: '', jumlah: '', keterangan: '' }
@@ -26,6 +27,7 @@ export default function Keuangan() {
   const [menghapus, setMenghapus] = useState(false)
 
   const [notif, setNotif] = useState(null)
+  const [mengekspor, setMengekspor] = useState(false)
 
   const muatData = async () => {
     setMemuat(true)
@@ -69,7 +71,7 @@ export default function Keuangan() {
     e.preventDefault()
     const validasi = jalankanValidasi({
       tanggal: tanggalTidakBolehFuture(form.tanggal, 'Tanggal'),
-      kategori_id: wajibDiisi(form.kategori_id, 'Kategori'),
+      kategori_id: wajibDiisi(form.kategori_id, 'Jenis transaksi'),
       jumlah: harusAngkaPositif(form.jumlah, 'Jumlah'),
     })
     setErrors(validasi)
@@ -123,13 +125,68 @@ export default function Keuangan() {
   const totalMasuk = daftar.filter((t) => t.kategori_transaksi?.tipe === 'masuk').reduce((s, t) => s + Number(t.jumlah), 0)
   const totalKeluar = daftar.filter((t) => t.kategori_transaksi?.tipe === 'keluar').reduce((s, t) => s + Number(t.jumlah), 0)
 
+  // Kategori dipisah per jenis, supaya di form bisa ditampilkan
+  // berkelompok: "Kas Masuk" dulu, lalu "Kas Keluar".
+  const kategoriMasuk = kategoriList.filter((k) => k.tipe === 'masuk')
+  const kategoriKeluar = kategoriList.filter((k) => k.tipe === 'keluar')
+
+  // Unduh daftar transaksi bulan yang sedang dilihat sebagai satu file PDF.
+  // Yang diekspor persis apa yang tampil di tabel (mengikuti filter bulan).
+  const exportPdf = async () => {
+    const periode = formatBulanTahun(bulan)
+    setMengekspor(true)
+    try {
+      await exportTabelPdf({
+        judul: 'Laporan Transaksi Keuangan',
+        subjudul: `Periode: ${periode}`,
+        ringkasan: [
+          { label: 'Kas Masuk', nilai: formatRupiah(totalMasuk) },
+          { label: 'Kas Keluar', nilai: formatRupiah(totalKeluar) },
+          { label: 'Saldo', nilai: formatRupiah(totalMasuk - totalKeluar) },
+          { label: 'Jumlah transaksi', nilai: `${daftar.length} transaksi` },
+        ],
+        kolom: [
+          { header: 'Tanggal', dataKey: 'tanggal', lebar: 25 },
+          { header: 'Kategori', dataKey: 'kategori', lebar: 35 },
+          { header: 'Jenis', dataKey: 'jenis', lebar: 22 },
+          { header: 'Keterangan', dataKey: 'keterangan' },
+          { header: 'Jumlah (Rp)', dataKey: 'jumlah', lebar: 32, rata: 'right' },
+        ],
+        baris: daftar.map((t) => ({
+          tanggal: formatTanggal(t.tanggal),
+          kategori: t.kategori_transaksi?.nama || '-',
+          jenis: t.kategori_transaksi?.tipe === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
+          keterangan: t.keterangan || '-',
+          jumlah: `${t.kategori_transaksi?.tipe === 'masuk' ? '+' : '-'} ${formatRupiah(t.jumlah)}`,
+        })),
+        namaFile: `Transaksi-Keuangan-${bulan}`,
+      })
+      setNotif({ tipe: 'sukses', pesan: `Laporan PDF ${periode} berhasil diunduh.` })
+    } catch (err) {
+      setNotif({ tipe: 'error', pesan: 'Gagal membuat PDF: ' + (err?.message || 'coba ulangi sebentar lagi.') })
+    } finally {
+      setMengekspor(false)
+    }
+  }
+
   return (
     <div>
       <div className="header-halaman">
         <h2 className="judul-halaman">Transaksi Keuangan</h2>
-        <button type="button" className="btn btn-emas" onClick={bukaTambah}>
-          + Tambah Transaksi
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button
+            type="button"
+            className="btn btn-garis"
+            onClick={exportPdf}
+            disabled={memuat || mengekspor || daftar.length === 0}
+            title={daftar.length === 0 ? 'Belum ada transaksi untuk diekspor di bulan ini.' : 'Unduh laporan bulan ini sebagai PDF'}
+          >
+            {mengekspor ? 'Menyiapkan...' : 'Export PDF'}
+          </button>
+          <button type="button" className="btn btn-emas" onClick={bukaTambah}>
+            + Tambah Transaksi
+          </button>
+        </div>
       </div>
 
       <Notifikasi tipe={notif?.tipe} pesan={notif?.pesan} onClose={() => setNotif(null)} />
@@ -212,25 +269,43 @@ export default function Keuangan() {
             />
             {errors.tanggal && <div className="pesan-error">{errors.tanggal}</div>}
 
-            <label htmlFor="kategori">Kategori</label>
-            <select
-              id="kategori"
-              className={errors.kategori_id ? 'input input-error' : 'input'}
-              value={form.kategori_id}
-              onChange={(e) => setForm({ ...form, kategori_id: e.target.value })}
-            >
-              <option value="">Pilih kategori...</option>
-              {kategoriList.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.nama} {k.tipe === 'masuk' ? '(Kas Masuk)' : '(Kas Keluar)'}
-                </option>
-              ))}
-            </select>
-            {errors.kategori_id && <div className="pesan-error">{errors.kategori_id}</div>}
-
-            <label htmlFor="jumlah">Jumlah (Rp)</label>
-            <InputUang id="jumlah" value={form.jumlah} onChange={(v) => setForm({ ...form, jumlah: v })} placeholder="0" error={errors.jumlah} />
-            {errors.jumlah && <div className="pesan-error">{errors.jumlah}</div>}
+            {/* Jumlah setengah lebar, di sampingnya jenis transaksi.
+                Pilihan jenis dikelompokkan Kas Masuk / Kas Keluar, jadi sekali
+                pilih sudah menentukan jenis sekaligus kategorinya -- tidak
+                mungkin jenis & kategori jadi tidak nyambung. */}
+            <div className="form-grid-2">
+              <div>
+                <label htmlFor="jumlah">Jumlah (Rp)</label>
+                <InputUang id="jumlah" value={form.jumlah} onChange={(v) => setForm({ ...form, jumlah: v })} placeholder="0" error={errors.jumlah} />
+                {errors.jumlah && <div className="pesan-error">{errors.jumlah}</div>}
+              </div>
+              <div>
+                <label htmlFor="kategori">Jenis Transaksi</label>
+                <select
+                  id="kategori"
+                  className={errors.kategori_id ? 'input input-error' : 'input'}
+                  value={form.kategori_id}
+                  onChange={(e) => setForm({ ...form, kategori_id: e.target.value })}
+                >
+                  <option value="">Pilih jenis...</option>
+                  {kategoriMasuk.length > 0 && (
+                    <optgroup label="Kas Masuk">
+                      {kategoriMasuk.map((k) => (
+                        <option key={k.id} value={k.id}>{k.nama}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {kategoriKeluar.length > 0 && (
+                    <optgroup label="Kas Keluar">
+                      {kategoriKeluar.map((k) => (
+                        <option key={k.id} value={k.id}>{k.nama}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+                {errors.kategori_id && <div className="pesan-error">{errors.kategori_id}</div>}
+              </div>
+            </div>
 
             <label htmlFor="keterangan">Keterangan (opsional)</label>
             <textarea

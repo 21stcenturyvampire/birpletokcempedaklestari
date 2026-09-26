@@ -5,10 +5,13 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import InputUang from '../components/InputUang'
 import Notifikasi from '../components/Notifikasi'
-import { formatAngka } from '../utils/format'
-import { wajibDiisi, angkaTidakNegatif, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
+import { formatAngka, formatTanggal, todayISO } from '../utils/format'
+import { wajibDiisi, angkaTidakNegatif, tanggalTidakBolehFuture, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
-const FORM_KOSONG = { id: null, nama: '', kategori: '', jumlah: 1, satuan: 'unit', kondisi: 'baik', lokasi: '', catatan: '' }
+const FORM_KOSONG = {
+  id: null, nama: '', kategori: '', jumlah: 1, satuan: 'unit', kondisi: 'baik',
+  tanggal_pembelian: '', lokasi: '', catatan: '',
+}
 
 const LABEL_KONDISI = { baik: 'Baik', perlu_perbaikan: 'Perlu Perbaikan', rusak: 'Rusak' }
 const KELAS_KONDISI = { baik: 'lencana-hijau', perlu_perbaikan: 'lencana-kuning', rusak: 'lencana-merah' }
@@ -40,7 +43,8 @@ export default function Inventaris() {
   const bukaEdit = (a) => {
     setForm({
       id: a.id, nama: a.nama, kategori: a.kategori || '', jumlah: a.jumlah,
-      satuan: a.satuan, kondisi: a.kondisi, lokasi: a.lokasi || '', catatan: a.catatan || '',
+      satuan: a.satuan, kondisi: a.kondisi, tanggal_pembelian: a.tanggal_pembelian || '',
+      lokasi: a.lokasi || '', catatan: a.catatan || '',
     })
     setErrors({})
     setModalTerbuka(true)
@@ -54,6 +58,10 @@ export default function Inventaris() {
       jumlah: form.jumlah === '' || form.jumlah === null || form.jumlah === undefined
         ? 'Jumlah wajib diisi.'
         : angkaTidakNegatif(form.jumlah, 'Jumlah'),
+      // Opsional -- hanya diperiksa kalau memang diisi.
+      tanggal_pembelian: form.tanggal_pembelian
+        ? tanggalTidakBolehFuture(form.tanggal_pembelian, 'Tanggal pembelian')
+        : '',
     })
     setErrors(validasi)
     if (adaError(validasi)) return
@@ -65,6 +73,7 @@ export default function Inventaris() {
       jumlah: form.jumlah || 0,
       satuan: form.satuan.trim(),
       kondisi: form.kondisi,
+      tanggal_pembelian: form.tanggal_pembelian || null,
       lokasi: form.lokasi.trim() || null,
       catatan: form.catatan.trim() || null,
     }
@@ -111,7 +120,7 @@ export default function Inventaris() {
         ) : (
           <table className="tabel">
             <thead>
-              <tr><th>Nama</th><th>Kategori</th><th>Jumlah</th><th>Kondisi</th><th>Lokasi</th><th></th></tr>
+              <tr><th>Nama</th><th>Kategori</th><th>Jumlah</th><th>Kondisi</th><th>Tgl Pembelian</th><th>Lokasi</th><th></th></tr>
             </thead>
             <tbody>
               {daftar.map((a) => (
@@ -120,6 +129,7 @@ export default function Inventaris() {
                   <td>{a.kategori || '-'}</td>
                   <td>{formatAngka(a.jumlah)} {a.satuan}</td>
                   <td><span className={`lencana ${KELAS_KONDISI[a.kondisi]}`}>{LABEL_KONDISI[a.kondisi]}</span></td>
+                  <td>{a.tanggal_pembelian ? formatTanggal(a.tanggal_pembelian) : '-'}</td>
                   <td>{a.lokasi || '-'}</td>
                   <td className="kolom-aksi">
                     <button type="button" className="btn-tautan" onClick={() => bukaEdit(a)}>Ubah</button>
@@ -168,11 +178,18 @@ export default function Inventaris() {
                 </select>
               </div>
               <div>
-                <label htmlFor="lokasiAset">Lokasi (opsional)</label>
-                <input id="lokasiAset" className="input" value={form.lokasi}
-                  onChange={(e) => setForm({ ...form, lokasi: e.target.value })} placeholder="Contoh: Dapur, Gudang" />
+                <label htmlFor="tanggalPembelian">Tanggal pembelian (opsional)</label>
+                <input id="tanggalPembelian" type="date"
+                  className={errors.tanggal_pembelian ? 'input input-error' : 'input'}
+                  max={todayISO()} value={form.tanggal_pembelian}
+                  onChange={(e) => setForm({ ...form, tanggal_pembelian: e.target.value })} />
+                {errors.tanggal_pembelian && <div className="pesan-error">{errors.tanggal_pembelian}</div>}
               </div>
             </div>
+
+            <label htmlFor="lokasiAset">Lokasi (opsional)</label>
+            <input id="lokasiAset" className="input" value={form.lokasi}
+              onChange={(e) => setForm({ ...form, lokasi: e.target.value })} placeholder="Contoh: Dapur, Gudang" />
 
             <label htmlFor="catatanAset">Catatan (opsional)</label>
             <textarea id="catatanAset" className="input" rows={2} value={form.catatan}

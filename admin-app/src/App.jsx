@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Keuangan from './pages/Keuangan'
 import KategoriTransaksi from './pages/KategoriTransaksi'
 import Persediaan from './pages/Persediaan'
+import BahanProduksi from './pages/BahanProduksi'
 import Inventaris from './pages/Inventaris'
 import KategoriBarang from './pages/KategoriBarang'
 import Pengguna from './pages/Pengguna'
@@ -41,6 +42,7 @@ export default function App() {
             />
 
             <Route path="/persediaan" element={<Persediaan />} />
+            <Route path="/persediaan/bahan-produksi" element={<BahanProduksi />} />
             <Route path="/persediaan/inventaris" element={<Inventaris />} />
             <Route
               path="/persediaan/kategori"

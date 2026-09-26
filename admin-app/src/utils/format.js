@@ -35,3 +35,11 @@ export function formatInputAngka(text) {
   if (!n) return ''
   return n.toLocaleString('id-ID', { maximumFractionDigits: 2 })
 }
+
+// "2026-09" -> "September 2026" (untuk judul laporan & label periode)
+export function formatBulanTahun(value) {
+  if (!value) return '-'
+  const d = new Date(value + '-01T00:00:00')
+  if (Number.isNaN(d.getTime())) return value
+  return d.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+}
