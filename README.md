@@ -8,8 +8,8 @@ bpcl-project/
 ├── supabase/            SQL untuk membuat semua tabel & aturan keamanan
 │   ├── schema.sql              (transaksi keuangan, persediaan, pengguna)
 │   ├── landing_konten.sql      (konten landing page yang bisa diedit)
-│   ├── update_2.sql            (barang freetext, inventaris, jadwal konten, tampilan)
-│   └── update_3.sql            (tanggal pembelian inventaris, kategori bahan produksi)
+│   └── update_2.sql            (barang freetext, inventaris, jadwal konten, tampilan)
+│   └── update_3.sql            (tanggal pembelian di inventaris)
 ├── landing-page/
 │   └── index.html       Website publik (statis, cukup 1 file HTML)
 ├── admin-app/           Aplikasi internal: keuangan, stok, & editor konten
@@ -48,9 +48,8 @@ Yang **masih perlu kamu jalankan manual** (satu kali saja):
    terbaru — Bir Pletok, Biji Ketapang, lilin aromaterapi, dll — sesuai
    dokumen produk. Isi ini juga bisa diedit lagi kapan saja lewat menu
    **Content → Update Konten** di aplikasi admin), lalu
-   `supabase/update_3.sql` (kolom tanggal pembelian di Inventaris &
-   kategori bawaan untuk menu Stok Bahan Produksi — aman dijalankan
-   meski sudah ada data).
+   `supabase/update_3.sql` (menambahkan kolom Tanggal Pembelian di
+   Inventaris).
 2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
    selesai di-deploy (lihat langkah 5).
 
@@ -86,13 +85,13 @@ where email = 'email_kamu@contoh.com';
 
 Setelah jadi Super Admin, sidebar akan menampilkan menu lengkap:
 
-- **Keuangan** → Transaksi (semua role, lengkap dengan tombol **Export
-  PDF** untuk mengunduh laporan bulan yang sedang dilihat), Kategori
-  Transaksi (Super Admin)
-- **Persediaan** → Barang & Stok (semua role, kini dengan input nama
-  barang bebas ketik), **Stok Bahan Produksi** (bahan baku untuk
-  produksi, semua role bisa mencatat), Inventaris (aset di luar stok
-  jual-beli, semua role bisa tambah, kini ada kolom tanggal pembelian),
+- **Keuangan** → Transaksi (semua role, kini dengan tombol Export PDF
+  dan form yang menanyakan Jenis Transaksi terlebih dulu supaya daftar
+  kategori tidak membingungkan), Kategori Transaksi (Super Admin)
+- **Persediaan** → Barang & Stok (semua barang, semua role, input nama
+  barang bebas ketik), Stok Bahan Produksi (tampilan yang sama namun
+  disaring khusus bahan baku produksi), Inventaris (aset di luar stok
+  jual-beli lengkap dengan tanggal pembelian, semua role bisa tambah),
   Kategori Barang (Super Admin)
 - **Content** → Jadwal Konten (rencana unggahan media sosial, semua
   role), Update Konten (isi & warna landing page, Super Admin)
@@ -101,38 +100,6 @@ Setelah jadi Super Admin, sidebar akan menampilkan menu lengkap:
 Editor hanya melihat menu yang boleh diaksesnya; menu khusus Super
 Admin otomatis tersembunyi untuk Editor. Detail validasi ada di
 komentar dalam kode.
-
-### Export PDF laporan transaksi
-
-Di menu **Keuangan → Transaksi**, tombol **Export PDF** mengunduh satu
-file berisi laporan transaksi **bulan yang sedang dipilih di filter
-"Bulan"** — persis yang tampil di tabel, tidak lebih dan tidak kurang.
-Isi filenya: kop nama usaha & waktu cetak, ringkasan (kas masuk, kas
-keluar, saldo, jumlah transaksi), lalu tabel Tanggal / Kategori / Jenis
-/ Keterangan / Jumlah, dengan nomor halaman di setiap halaman. Nama
-file mengikuti periodenya, mis. `Transaksi-Keuangan-2026-09.pdf`.
-
-Tombolnya mati kalau bulan itu memang belum punya transaksi. Library
-PDF-nya baru diunduh browser saat tombol ditekan, jadi tidak memperberat
-aplikasi untuk pemakaian sehari-hari.
-
-### Stok Bahan Produksi
-
-Menu **Persediaan → Stok Bahan Produksi** khusus untuk bahan baku yang
-dipakai membuat produk (jahe, gula, rempah, kemasan, dsb). Isinya adalah
-barang yang kategorinya berjenis **Bahan Baku**, jadi stoknya tetap satu
-angka yang sama dengan menu "Barang & Stok" — tidak ada stok yang
-terhitung dua kali, dan semua aturan stok yang sudah ada tetap berlaku
-(stok cuma berubah lewat pencatatan resmi, tidak bisa keluar melebihi
-stok tersedia, riwayatnya tercatat).
-
-- **+ Catat Masuk/Pemakaian** (semua role) — pilih "Bahan Masuk
-  (pembelian)" atau "Dipakai Produksi". Nama bahan bebas diketik; kalau
-  belum ada, bahan baru otomatis dibuat di kategori Bahan Baku.
-- **+ Tambah Bahan** (Super Admin) — form lengkap: kode, satuan,
-  kategori, stok awal, stok minimum, harga beli.
-- Kartu ringkasan di atas menampilkan jumlah jenis bahan, berapa yang
-  stoknya menipis, dan nilai persediaan bahan (stok × harga beli).
 
 ## 3. Hubungkan landing page ke database
 
@@ -256,13 +223,10 @@ GitHub Actions-nya), datanya tetap aman sampai 1 tahun dan tinggal klik
 - Jadwal Konten & Inventaris bisa ditambah oleh Editor maupun Super
   Admin (risikonya rendah, bukan data uang/stok); Inventaris tetap
   membatasi hapus data hanya untuk Super Admin.
-- Tanggal pembelian di Inventaris boleh dikosongkan (aset lama sering
-  sudah tidak diketahui lagi tanggal belinya), tapi kalau diisi tidak
-  boleh melebihi hari ini.
-- Di form Transaksi, jenis transaksi dipilih dari daftar yang sudah
-  dikelompokkan "Kas Masuk" / "Kas Keluar", jadi tidak mungkin memilih
-  kategori yang jenisnya tidak nyambung dengan maksud transaksinya.
-- Di Stok Bahan Produksi, nama yang sudah dipakai barang non-bahan baku
-  ditolak (biar tidak ada nama kembar antar menu) — sistem mengarahkan
-  untuk mencatatnya di "Barang & Stok" atau minta Super Admin memindahkan
-  kategorinya.
+- Form Transaksi Keuangan meminta Jenis Transaksi (Kas Masuk/Keluar)
+  dulu sebelum menampilkan pilihan Kategori, supaya daftar kategori
+  yang muncul selalu pendek dan sesuai jenisnya saja.
+- "Stok Bahan Produksi" memakai data barang yang sama dengan "Barang &
+  Stok" (bukan tabel terpisah) — hanya disaring tampilannya. Barang
+  baru yang diketik lewat halaman ini otomatis dikategorikan sebagai
+  bahan baku.

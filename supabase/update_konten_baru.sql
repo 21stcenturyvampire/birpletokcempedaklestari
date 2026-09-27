@@ -17,7 +17,7 @@ where section = 'hero';
 update public.landing_konten set data = '{
   "judul": "Bir tanpa alkohol, warisan yang tetap hidup",
   "paragraf_1": "Pada masa kolonial, orang Belanda gemar menikmati bir dan wine dalam setiap perayaan. Masyarakat Betawi yang mayoritas Muslim tidak bisa ikut minum minuman beralkohol itu, sehingga mereka meracik versi mereka sendiri dari rempah nusantara. Banyaknya rempah-rempah sebagai bahan baku penyusunnya, menjadikan bir pletok ke dalam salah satu minuman kesehatan serta halal.",
-  "paragraf_2": "Kenapa dinamakan Bir Pletok? Kata Bir sendiri diambil dari kata Bi'\''run (Bahasa Arab) yang mempunyai arti sumber mata air, bukan diambil dari kata Beer yang mempunyai arti bir yaitu minuman yang memabukkan. Sedangkan kata Pletok diambil dari racikan minuman Bir yang sudah jadi, dimasukkan ke dalam ketel ditambah es batu kemudian dikocok-kocok dan mengeluarkan bunyi pletok-pletok.",
+  "paragraf_2": "Kenapa dinamakan Bir Pletok? Kata Bir sendiri diambil dari kata Bi''run (Bahasa Arab) yang mempunyai arti sumber mata air, bukan diambil dari kata Beer yang mempunyai arti bir yaitu minuman yang memabukkan. Sedangkan kata Pletok diambil dari racikan minuman Bir yang sudah jadi, dimasukkan ke dalam ketel ditambah es batu kemudian dikocok-kocok dan mengeluarkan bunyi pletok-pletok.",
   "judul_rempah": "Racikan rempah kami",
   "daftar_rempah": ["Jahe", "Serai", "Cengkeh", "Biji pala", "Daun jeruk", "Daun pandan", "Kayu secang", "Kayu manis", "Kayu masoyi", "Kapulaga", "Lada"],
   "catatan_rempah": "Direbus perlahan lalu disaring, tanpa fermentasi dan tanpa alkohol — aman diminum semua kalangan, dari anak-anak hingga lansia.",
