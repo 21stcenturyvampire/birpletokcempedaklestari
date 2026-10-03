@@ -10,6 +10,7 @@ bpcl-project/
 │   ├── landing_konten.sql      (konten landing page yang bisa diedit)
 │   └── update_2.sql            (barang freetext, inventaris, jadwal konten, tampilan)
 │   └── update_3.sql            (tanggal pembelian di inventaris)
+│   └── update_4.sql            (tabel bahan_produksi berdiri sendiri)
 ├── landing-page/
 │   └── index.html       Website publik (statis, cukup 1 file HTML)
 ├── admin-app/           Aplikasi internal: keuangan, stok, & editor konten
@@ -49,7 +50,9 @@ Yang **masih perlu kamu jalankan manual** (satu kali saja):
    dokumen produk. Isi ini juga bisa diedit lagi kapan saja lewat menu
    **Content → Update Konten** di aplikasi admin), lalu
    `supabase/update_3.sql` (menambahkan kolom Tanggal Pembelian di
-   Inventaris).
+   Inventaris), lalu `supabase/update_4.sql` (tabel baru `bahan_produksi`
+   untuk menu "Bahan Produksi" — berdiri sendiri, tidak terhubung ke
+   "Barang & Stok").
 2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
    selesai di-deploy (lihat langkah 5).
 
@@ -89,10 +92,10 @@ Setelah jadi Super Admin, sidebar akan menampilkan menu lengkap:
   dan form yang menanyakan Jenis Transaksi terlebih dulu supaya daftar
   kategori tidak membingungkan), Kategori Transaksi (Super Admin)
 - **Persediaan** → Barang & Stok (semua barang, semua role, input nama
-  barang bebas ketik), Stok Bahan Produksi (tampilan yang sama namun
-  disaring khusus bahan baku produksi), Inventaris (aset di luar stok
-  jual-beli lengkap dengan tanggal pembelian, semua role bisa tambah),
-  Kategori Barang (Super Admin)
+  barang bebas ketik), Bahan Produksi (catatan bahan baku produksi yang
+  berdiri sendiri — CRUD langsung, tidak terhubung ke Barang & Stok),
+  Inventaris (aset di luar stok jual-beli lengkap dengan tanggal
+  pembelian, semua role bisa tambah), Kategori Barang (Super Admin)
 - **Content** → Jadwal Konten (rencana unggahan media sosial, semua
   role), Update Konten (isi & warna landing page, Super Admin)
 - **Admin** → Pengguna (Super Admin)
@@ -226,7 +229,8 @@ GitHub Actions-nya), datanya tetap aman sampai 1 tahun dan tinggal klik
 - Form Transaksi Keuangan meminta Jenis Transaksi (Kas Masuk/Keluar)
   dulu sebelum menampilkan pilihan Kategori, supaya daftar kategori
   yang muncul selalu pendek dan sesuai jenisnya saja.
-- "Stok Bahan Produksi" memakai data barang yang sama dengan "Barang &
-  Stok" (bukan tabel terpisah) — hanya disaring tampilannya. Barang
-  baru yang diketik lewat halaman ini otomatis dikategorikan sebagai
-  bahan baku.
+- "Bahan Produksi" adalah catatan tersendiri (tabel `bahan_produksi`)
+  untuk bahan baku pembuatan produk — CRUD langsung dan sederhana,
+  jumlahnya bisa diedit manual kapan saja, TIDAK memakai mekanisme
+  mutasi/riwayat seperti "Barang & Stok" dan tidak saling terhubung
+  dengan data barang di sana.
