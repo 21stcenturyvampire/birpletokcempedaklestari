@@ -8,7 +8,7 @@ import Notifikasi from '../components/Notifikasi'
 import useTabel from '../hooks/useTabel'
 import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { formatRupiah, formatTanggal, todayISO } from '../utils/format'
-import { buatPdfLaporan, hitungTotal, namaFileLaporan, rentangBulan } from '../utils/laporanKeuangan'
+import { buatPdfLaporan, bulanSebelumnya, hitungTotal, namaFileLaporan, rentangBulan } from '../utils/laporanKeuangan'
 import ArsipDrive from '../components/ArsipDrive'
 import { wajibDiisi, harusAngkaPositif, tanggalTidakBolehFuture, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
@@ -41,7 +41,7 @@ export default function Keuangan() {
     const [{ data: transaksi }, { data: kategori }] = await Promise.all([
       supabase
         .from('transaksi_keuangan')
-        .select('id, tanggal, jumlah, keterangan, kategori_id, kategori_transaksi(nama, tipe)')
+        .select('id, tanggal, jumlah, keterangan, kategori_id, created_at, kategori_transaksi(nama, tipe)')
         .gte('tanggal', awal)
         .lte('tanggal', akhir)
         .order('tanggal', { ascending: false })
@@ -155,11 +155,18 @@ export default function Keuangan() {
   const eksporPdf = async () => {
     setMengekspor(true)
     try {
-      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      const lalu = rentangBulan(bulanSebelumnya(bulan))
+      const [{ default: jsPDF }, { default: autoTable }, { data: daftarBulanLalu, error }] = await Promise.all([
         import('jspdf'),
         import('jspdf-autotable'),
+        // Hanya untuk perbandingan di kartu ringkasan PDF.
+        supabase
+          .from('transaksi_keuangan')
+          .select('jumlah, kategori_transaksi(tipe)')
+          .gte('tanggal', lalu.awal)
+          .lte('tanggal', lalu.akhir),
       ])
-      const doc = buatPdfLaporan({ jsPDF, autoTable, bulan, daftar })
+      const doc = buatPdfLaporan({ jsPDF, autoTable, bulan, daftar, daftarBulanLalu: error ? null : daftarBulanLalu })
       doc.save(namaFileLaporan(bulan))
     } catch (err) {
       setNotif({ tipe: 'error', pesan: 'Gagal membuat PDF: ' + (err?.message || err) })

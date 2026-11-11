@@ -1,17 +1,35 @@
-// Pembuat PDF laporan transaksi keuangan bulanan.
+// Pembuat PDF laporan arus kas bulanan.
 // Dipakai di DUA tempat supaya hasilnya selalu sama persis:
 //  1. Tombol "Export PDF" di halaman Transaksi (browser).
-//  2. Script otomatis akhir bulan (scripts/laporan-bulanan.mjs, Node) yang
+//  2. Script otomatis awal bulan (scripts/laporan-bulanan.mjs, Node) yang
 //     mengunggah PDF ke Google Drive.
 // Karena itu file ini tidak boleh memakai API khusus browser.
+//
+// Isi laporan:
+//  - Header + 4 kartu ringkasan (masuk, keluar, saldo bersih, jumlah
+//    transaksi) dengan perbandingan terhadap bulan sebelumnya
+//  - Ringkasan per kategori (jumlah transaksi, total, porsi + bar)
+//  - Arus kas per minggu
+//  - 5 pemasukan & 5 pengeluaran terbesar
+//  - Kolom tanda tangan
+//  - Lampiran: rincian seluruh transaksi dengan saldo berjalan
+//  - Nomor halaman di setiap halaman
 import { formatRupiah, formatTanggal } from './format.js'
 
 const NAMA_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+const NAMA_BULAN_PENDEK = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+const pad2 = (n) => String(n).padStart(2, '0')
 
 // "2026-10" -> "Oktober 2026"
 export function labelBulan(bulan) {
   const [tahun, bln] = bulan.split('-').map(Number)
   return `${NAMA_BULAN[bln - 1]} ${tahun}`
+}
+
+function labelBulanPendek(bulan) {
+  const [tahun, bln] = bulan.split('-').map(Number)
+  return `${NAMA_BULAN_PENDEK[bln - 1]} ${tahun}`
 }
 
 export function namaFileLaporan(bulan) {
@@ -22,56 +40,455 @@ export function namaFileLaporan(bulan) {
 export function rentangBulan(bulan) {
   const [tahun, bln] = bulan.split('-').map(Number)
   const hariTerakhir = new Date(Date.UTC(tahun, bln, 0)).getUTCDate()
-  return { awal: `${bulan}-01`, akhir: `${bulan}-${String(hariTerakhir).padStart(2, '0')}` }
+  return { awal: `${bulan}-01`, akhir: `${bulan}-${pad2(hariTerakhir)}` }
 }
+
+// "2026-01" -> "2025-12"
+export function bulanSebelumnya(bulan) {
+  const [tahun, bln] = bulan.split('-').map(Number)
+  return bln === 1 ? `${tahun - 1}-12` : `${tahun}-${pad2(bln - 1)}`
+}
+
+const tipeDari = (t) => t.kategori_transaksi?.tipe
 
 export function hitungTotal(daftar) {
-  let masuk = 0
-  let keluar = 0
+  let masuk = 0, keluar = 0, nMasuk = 0, nKeluar = 0
   for (const t of daftar) {
-    if (t.kategori_transaksi?.tipe === 'masuk') masuk += Number(t.jumlah)
-    else if (t.kategori_transaksi?.tipe === 'keluar') keluar += Number(t.jumlah)
+    if (tipeDari(t) === 'masuk') { masuk += Number(t.jumlah); nMasuk++ }
+    else if (tipeDari(t) === 'keluar') { keluar += Number(t.jumlah); nKeluar++ }
   }
-  return { masuk, keluar, saldo: masuk - keluar }
+  return { masuk, keluar, saldo: masuk - keluar, nMasuk, nKeluar }
 }
 
+// ---------------------------------------------------------------------
+// Gaya
+// ---------------------------------------------------------------------
+const W = 210
+const H = 297
+const M = 14
+const LEBAR = W - 2 * M
+
+const C = {
+  maroon: [69, 14, 22],
+  maroonMuda: [115, 32, 48],
+  emas: [200, 155, 60],
+  emasMuda: [224, 193, 121],
+  krem: [250, 246, 238],
+  kremTua: [244, 236, 221],
+  garis: [230, 220, 200],
+  tinta: [36, 18, 9],
+  abu: [110, 96, 84],
+  hijau: [46, 125, 50],
+  merah: [179, 38, 30],
+  putih: [255, 255, 255],
+}
+
+const fmtPersen = (n) => n.toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%'
+const tglPendek = (iso) => `${iso.slice(8, 10)} ${NAMA_BULAN_PENDEK[Number(iso.slice(5, 7)) - 1]}`
+
+const GAYA_TABEL = {
+  theme: 'plain',
+  styles: {
+    font: 'helvetica',
+    fontSize: 8.5,
+    textColor: C.tinta,
+    cellPadding: { top: 2.2, bottom: 2.2, left: 2.5, right: 2.5 },
+    lineColor: C.garis,
+    lineWidth: { bottom: 0.2 },
+    valign: 'middle',
+  },
+  headStyles: { fillColor: C.maroon, textColor: C.putih, fontStyle: 'bold', fontSize: 7.8, lineWidth: 0 },
+  footStyles: { fillColor: C.kremTua, textColor: C.tinta, fontStyle: 'bold', lineWidth: 0 },
+  alternateRowStyles: { fillColor: C.krem },
+  margin: { left: M, right: M, top: 20, bottom: 20 },
+}
+
+function warnai(doc, warna, jenis = 'text') {
+  if (jenis === 'text') doc.setTextColor(...warna)
+  else if (jenis === 'fill') doc.setFillColor(...warna)
+  else doc.setDrawColor(...warna)
+}
+
+function font(doc, ukuran, gaya = 'normal', warna = C.tinta) {
+  doc.setFont('helvetica', gaya)
+  doc.setFontSize(ukuran)
+  warnai(doc, warna)
+}
+
+// Judul bagian dengan aksen emas. Pindah halaman kalau ruang tersisa sempit.
+function judulBagian(doc, y, teks, keterangan, ruangMin = 45) {
+  if (y > H - ruangMin) { doc.addPage(); y = 22 }
+  warnai(doc, C.emas, 'fill')
+  doc.rect(M, y - 4, 1.4, 5.4, 'F')
+  font(doc, 11, 'bold')
+  doc.text(teks, M + 4, y)
+  if (keterangan) {
+    font(doc, 7.8, 'normal', C.abu)
+    doc.text(keterangan, W - M, y, { align: 'right' })
+  }
+  return y + 4
+}
+
+// Kartu ringkasan berisi label, angka besar, dan baris perbandingan.
+function kartu(doc, x, y, w, h, { label, nilai, warnaNilai, aksen, banding, catatan }) {
+  warnai(doc, C.krem, 'fill')
+  warnai(doc, C.garis, 'draw')
+  doc.setLineWidth(0.25)
+  doc.roundedRect(x, y, w, h, 2, 2, 'FD')
+  warnai(doc, aksen, 'fill')
+  doc.rect(x, y + 4, 1.3, h - 8, 'F')
+
+  font(doc, 7, 'bold', C.abu)
+  doc.text(label.toUpperCase(), x + 5, y + 7)
+  font(doc, 12.5, 'bold', warnaNilai)
+  doc.text(nilai, x + 5, y + 15)
+
+  if (banding) {
+    const { persen, naik, baik, teks } = banding
+    font(doc, 7, 'normal', C.abu)
+    if (persen == null) {
+      doc.text(teks, x + 5, y + 21.5)
+    } else {
+      const warna = baik ? C.hijau : C.merah
+      warnai(doc, warna, 'fill')
+      const tx = x + 5, ty = y + 21.5
+      if (naik) doc.triangle(tx, ty - 0.3, tx + 2.4, ty - 0.3, tx + 1.2, ty - 2.4, 'F')
+      else doc.triangle(tx, ty - 2.4, tx + 2.4, ty - 2.4, tx + 1.2, ty - 0.3, 'F')
+      font(doc, 7, 'bold', warna)
+      doc.text(fmtPersen(Math.abs(persen)), tx + 3.4, ty)
+      const lebarPersen = doc.getTextWidth(fmtPersen(Math.abs(persen)))
+      font(doc, 7, 'normal', C.abu)
+      doc.text(teks, tx + 4.4 + lebarPersen, ty)
+    }
+  } else if (catatan) {
+    font(doc, 7, 'normal', C.abu)
+    doc.text(catatan, x + 5, y + 21.5)
+  }
+}
+
+// Bandingkan nilai bulan ini vs bulan lalu. arahBaik: 'naik' | 'turun'.
+function banding(sekarang, lalu, bulanLalu, arahBaik) {
+  if (lalu == null) return null
+  const label = `vs ${labelBulanPendek(bulanLalu)}`
+  if (lalu === 0 && sekarang === 0) return { persen: null, teks: `Sama dengan ${labelBulanPendek(bulanLalu)}` }
+  if (lalu === 0) return { persen: null, teks: `${labelBulanPendek(bulanLalu)}: Rp 0` }
+  const persen = ((sekarang - lalu) / Math.abs(lalu)) * 100
+  if (Math.abs(persen) < 0.05) return { persen: null, teks: `Sama dengan ${labelBulanPendek(bulanLalu)}` }
+  const naik = persen > 0
+  return { persen, naik, baik: arahBaik === 'naik' ? naik : !naik, teks: label }
+}
+
+// ---------------------------------------------------------------------
+// Pembuat PDF
+// ---------------------------------------------------------------------
 // jsPDF & autoTable dioper dari luar karena cara import-nya beda antara
-// browser (lazy import) dan Node.
-export function buatPdfLaporan({ jsPDF, autoTable, bulan, daftar, keterangan = '' }) {
-  const doc = new jsPDF()
-  const total = hitungTotal(daftar)
+// browser (lazy import) dan Node. daftarBulanLalu opsional (untuk
+// perbandingan); kalau null, baris perbandingan tidak ditampilkan.
+export function buatPdfLaporan({ jsPDF, autoTable, bulan, daftar, daftarBulanLalu = null, keterangan = '' }) {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const label = labelBulan(bulan)
+  const { awal, akhir } = rentangBulan(bulan)
+  const hariTerakhir = Number(akhir.slice(8, 10))
+  const bulanLalu = bulanSebelumnya(bulan)
 
-  doc.setFontSize(14)
-  doc.text('Bir Pletok Cempedak Lestari', 14, 18)
-  doc.setFontSize(10)
-  doc.setTextColor(100)
-  doc.text(`Laporan Transaksi Keuangan — ${labelBulan(bulan)}`, 14, 25)
-  doc.text(`Dicetak: ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })} WIB${keterangan ? ` · ${keterangan}` : ''}`, 14, 30)
+  const tandaTangan = (y) => {
+    if (y > H - 58) { doc.addPage(); y = 30 }
+    const tglTtd = new Date().toLocaleDateString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric' })
+    font(doc, 8.5, 'normal', C.tinta)
+    doc.text(`Jakarta, ${tglTtd}`, W - M, y, { align: 'right' })
+    y += 7
+    const kolomTtd = [
+      { judul: 'Disusun oleh,', x: M + 30 },
+      { judul: 'Disetujui oleh,', x: W - M - 30 },
+    ]
+    for (const k of kolomTtd) {
+      font(doc, 8.5, 'normal', C.abu)
+      doc.text(k.judul, k.x, y, { align: 'center' })
+      warnai(doc, C.abu, 'draw')
+      doc.setLineWidth(0.2)
+      doc.line(k.x - 28, y + 24, k.x + 28, y + 24)
+      font(doc, 7.5, 'normal', C.abu)
+      doc.text('Nama & tanda tangan', k.x, y + 28, { align: 'center' })
+    }
 
-  const baris = daftar.map((t) => [
-    formatTanggal(t.tanggal),
-    t.kategori_transaksi?.nama || '-',
-    t.kategori_transaksi?.tipe === 'masuk' ? 'Masuk' : 'Keluar',
-    t.keterangan || '-',
-    (t.kategori_transaksi?.tipe === 'masuk' ? '+ ' : '- ') + formatRupiah(t.jumlah),
-  ])
+    return y + 34
+  }
 
-  autoTable(doc, {
-    startY: 36,
-    head: [['Tanggal', 'Kategori', 'Jenis', 'Keterangan', 'Jumlah']],
-    body: baris.length ? baris : [[{ content: 'Tidak ada transaksi di bulan ini.', colSpan: 5, styles: { halign: 'center' } }]],
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [200, 155, 60], textColor: [44, 21, 12] },
-    columnStyles: { 4: { halign: 'right' } },
+  const urut = [...daftar].sort(
+    (a, b) => a.tanggal.localeCompare(b.tanggal) || String(a.created_at || '').localeCompare(String(b.created_at || '')),
+  )
+  const total = hitungTotal(urut)
+  const totalLalu = daftarBulanLalu ? hitungTotal(daftarBulanLalu) : null
+  const dicetak = new Date().toLocaleString('id-ID', {
+    timeZone: 'Asia/Jakarta', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 
-  const akhirY = doc.lastAutoTable.finalY + 10
-  doc.setTextColor(20)
-  doc.setFontSize(10)
-  doc.text(`Total Kas Masuk : ${formatRupiah(total.masuk)}`, 14, akhirY)
-  doc.text(`Total Kas Keluar: ${formatRupiah(total.keluar)}`, 14, akhirY + 6)
-  doc.setFont(undefined, 'bold')
-  doc.text(`Saldo           : ${formatRupiah(total.saldo)}`, 14, akhirY + 12)
+  // ---------- Header ----------
+  warnai(doc, C.maroon, 'fill')
+  doc.rect(0, 0, W, 36, 'F')
+  warnai(doc, C.emas, 'fill')
+  doc.rect(0, 36, W, 1.1, 'F')
+
+  font(doc, 7.5, 'bold', C.emasMuda)
+  doc.text('BIR PLETOK CEMPEDAK LESTARI', M, 12)
+  font(doc, 19, 'bold', C.putih)
+  doc.text('Laporan Arus Kas Bulanan', M, 22)
+  font(doc, 8.5, 'normal', C.kremTua)
+  doc.text(`Periode ${formatTanggal(awal)} – ${formatTanggal(akhir)}`, M, 29)
+
+  font(doc, 7.5, 'bold', C.emasMuda)
+  doc.text('PERIODE', W - M, 12, { align: 'right' })
+  font(doc, 15, 'bold', C.putih)
+  doc.text(label, W - M, 21, { align: 'right' })
+  font(doc, 7.5, 'normal', C.kremTua)
+  doc.text(`Dicetak ${dicetak} WIB${keterangan ? ` · ${keterangan}` : ''}`, W - M, 29, { align: 'right' })
+
+  // ---------- Kartu ringkasan ----------
+  const yKartu = 45
+  const gap = 4
+  const wKartu = (LEBAR - gap * 3) / 4
+  const hKartu = 26
+  const kartuData = [
+    {
+      label: 'Kas Masuk', nilai: formatRupiah(total.masuk), warnaNilai: C.hijau, aksen: C.hijau,
+      banding: banding(total.masuk, totalLalu?.masuk, bulanLalu, 'naik'),
+    },
+    {
+      label: 'Kas Keluar', nilai: formatRupiah(total.keluar), warnaNilai: C.merah, aksen: C.merah,
+      banding: banding(total.keluar, totalLalu?.keluar, bulanLalu, 'turun'),
+    },
+    {
+      label: 'Saldo Bersih', nilai: formatRupiah(total.saldo), warnaNilai: total.saldo >= 0 ? C.hijau : C.merah, aksen: C.emas,
+      banding: banding(total.saldo, totalLalu?.saldo, bulanLalu, 'naik'),
+    },
+    {
+      label: 'Jumlah Transaksi', nilai: String(urut.length), warnaNilai: C.tinta, aksen: C.maroonMuda,
+      catatan: `${total.nMasuk} masuk · ${total.nKeluar} keluar`,
+    },
+  ]
+  kartuData.forEach((k, i) => kartu(doc, M + i * (wKartu + gap), yKartu, wKartu, hKartu, k))
+
+  // Baris insight singkat di bawah kartu
+  let y = yKartu + hKartu + 7
+  const insight = []
+  if (total.masuk > 0) insight.push(`Rasio pengeluaran ${fmtPersen((total.keluar / total.masuk) * 100)} dari pemasukan`)
+  if (total.masuk > 0) insight.push(`margin kas ${fmtPersen((total.saldo / total.masuk) * 100)}`)
+  if (urut.length) insight.push(`rata-rata kas masuk per hari ${formatRupiah(total.masuk / hariTerakhir)}`)
+  if (insight.length) {
+    font(doc, 8, 'normal', C.abu)
+    const s = insight.join(' · ')
+    doc.text(s.charAt(0).toUpperCase() + s.slice(1) + '.', M, y)
+    y += 9
+  } else {
+    y += 3
+  }
+
+  if (urut.length === 0) {
+    font(doc, 10, 'normal', C.abu)
+    doc.text('Tidak ada transaksi yang tercatat pada periode ini.', W / 2, y + 10, { align: 'center' })
+    tandaTangan(y + 26)
+  } else {
+    // ---------- Ringkasan per kategori ----------
+    const perKategori = new Map()
+    for (const t of urut) {
+      const tipe = tipeDari(t)
+      const nama = t.kategori_transaksi?.nama || 'Tanpa kategori'
+      const kunci = `${tipe}|${nama}`
+      const item = perKategori.get(kunci) || { nama, tipe, n: 0, total: 0 }
+      item.n++
+      item.total += Number(t.jumlah)
+      perKategori.set(kunci, item)
+    }
+    const kategoriUrut = [...perKategori.values()].sort(
+      (a, b) => (a.tipe === b.tipe ? b.total - a.total : a.tipe === 'masuk' ? -1 : 1),
+    )
+    const porsiDari = (k) => {
+      const dasar = k.tipe === 'masuk' ? total.masuk : total.keluar
+      return dasar > 0 ? k.total / dasar : 0
+    }
+
+    y = judulBagian(doc, y, 'Ringkasan per Kategori', 'Porsi dihitung terhadap total jenisnya')
+    autoTable(doc, {
+      ...GAYA_TABEL,
+      startY: y,
+      head: [['Kategori', 'Jenis', 'Transaksi', 'Total', 'Porsi']],
+      body: kategoriUrut.map((k) => [k.nama, k.tipe === 'masuk' ? 'Masuk' : 'Keluar', String(k.n), formatRupiah(k.total), fmtPersen(porsiDari(k) * 100)]),
+      columnStyles: {
+        1: { cellWidth: 20 },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 34, halign: 'right' },
+        4: { cellWidth: 52, halign: 'right' },
+      },
+      didParseCell: (d) => {
+        if (d.section === 'head') {
+          if (d.column.index === 2) d.cell.styles.halign = 'center'
+          if (d.column.index === 3) d.cell.styles.halign = 'right'
+          if (d.column.index === 4) d.cell.styles.halign = 'left'
+          return
+        }
+        if (d.section !== 'body') return
+        const k = kategoriUrut[d.row.index]
+        if (d.column.index === 1) { d.cell.styles.textColor = k.tipe === 'masuk' ? C.hijau : C.merah; d.cell.styles.fontStyle = 'bold' }
+        if (d.column.index === 0) d.cell.styles.fontStyle = 'bold'
+      },
+      didDrawCell: (d) => {
+        if (d.section !== 'body' || d.column.index !== 4) return
+        const k = kategoriUrut[d.row.index]
+        const maks = d.cell.width - 18
+        const bx = d.cell.x + 2.5
+        const by = d.cell.y + d.cell.height / 2 - 1.3
+        warnai(doc, C.garis, 'fill')
+        doc.roundedRect(bx, by, maks, 2.6, 1.3, 1.3, 'F')
+        const lebar = Math.max(porsiDari(k) * maks, 0.8)
+        warnai(doc, k.tipe === 'masuk' ? C.hijau : C.merah, 'fill')
+        doc.roundedRect(bx, by, lebar, 2.6, 1.3, 1.3, 'F')
+      },
+    })
+    y = doc.lastAutoTable.finalY + 11
+
+    // ---------- Arus kas per minggu ----------
+    const minggu = []
+    for (let mulai = 1, i = 1; mulai <= hariTerakhir; mulai += 7, i++) {
+      const selesai = Math.min(mulai + 6, hariTerakhir)
+      minggu.push({ i, mulai, selesai, masuk: 0, keluar: 0, n: 0 })
+    }
+    for (const t of urut) {
+      const w = minggu[Math.floor((Number(t.tanggal.slice(8, 10)) - 1) / 7)]
+      if (!w) continue
+      w.n++
+      if (tipeDari(t) === 'masuk') w.masuk += Number(t.jumlah)
+      else w.keluar += Number(t.jumlah)
+    }
+    const [, blnStr] = bulan.split('-')
+    const blnPendek = NAMA_BULAN_PENDEK[Number(blnStr) - 1]
+
+    y = judulBagian(doc, y, 'Arus Kas per Minggu')
+    autoTable(doc, {
+      ...GAYA_TABEL,
+      startY: y,
+      head: [['Minggu', 'Tanggal', 'Transaksi', 'Kas Masuk', 'Kas Keluar', 'Selisih']],
+      body: minggu.map((w) => [
+        `Minggu ${w.i}`, `${pad2(w.mulai)}–${pad2(w.selesai)} ${blnPendek}`, String(w.n),
+        formatRupiah(w.masuk), formatRupiah(w.keluar), formatRupiah(w.masuk - w.keluar),
+      ]),
+      foot: [['Total', '', String(urut.length), formatRupiah(total.masuk), formatRupiah(total.keluar), formatRupiah(total.saldo)]],
+      columnStyles: {
+        0: { fontStyle: 'bold' },
+        2: { halign: 'center' },
+        3: { halign: 'right' },
+        4: { halign: 'right' },
+        5: { halign: 'right', fontStyle: 'bold' },
+      },
+      didParseCell: (d) => {
+        if (d.column.index >= 2 && d.section === 'head') d.cell.styles.halign = d.column.index === 2 ? 'center' : 'right'
+        if (d.section === 'foot') d.cell.styles.halign = d.column.index === 2 ? 'center' : d.column.index >= 3 ? 'right' : 'left'
+        if (d.section === 'body' && d.column.index === 3) d.cell.styles.textColor = C.hijau
+        if (d.section === 'body' && d.column.index === 4) d.cell.styles.textColor = C.merah
+        if (d.column.index === 5 && d.section !== 'head') {
+          const nilai = d.section === 'foot' ? total.saldo : minggu[d.row.index].masuk - minggu[d.row.index].keluar
+          d.cell.styles.textColor = nilai >= 0 ? C.hijau : C.merah
+        }
+      },
+    })
+    y = doc.lastAutoTable.finalY + 11
+
+    // ---------- Transaksi terbesar (dua tabel berdampingan) ----------
+    const terbesar = (tipe) => urut.filter((t) => tipeDari(t) === tipe).sort((a, b) => Number(b.jumlah) - Number(a.jumlah)).slice(0, 5)
+    const topMasuk = terbesar('masuk')
+    const topKeluar = terbesar('keluar')
+    if (y > H - 75) { doc.addPage(); y = 22 }
+    y = judulBagian(doc, y, 'Transaksi Terbesar', null, 75)
+    const wSetengah = (LEBAR - 6) / 2
+    const tabelTop = (data, x, judul, warna) => {
+      autoTable(doc, {
+        ...GAYA_TABEL,
+        startY: y,
+        margin: { ...GAYA_TABEL.margin, left: x, right: W - x - wSetengah },
+        tableWidth: wSetengah,
+        head: [[{ content: judul, colSpan: 3, styles: { fillColor: warna } }]],
+        body: data.length
+          ? data.map((t) => [tglPendek(t.tanggal), [t.kategori_transaksi?.nama, t.keterangan].filter(Boolean).join(' — '), formatRupiah(t.jumlah)])
+          : [[{ content: 'Tidak ada', colSpan: 3, styles: { halign: 'center', textColor: C.abu } }]],
+        styles: { ...GAYA_TABEL.styles, fontSize: 7.8 },
+        columnStyles: { 0: { cellWidth: 14, textColor: C.abu }, 2: { cellWidth: 25, halign: 'right', fontStyle: 'bold', textColor: warna } },
+      })
+      return doc.lastAutoTable.finalY
+    }
+    const akhirKiri = tabelTop(topMasuk, M, '5 Pemasukan Terbesar', C.hijau)
+    const akhirKanan = tabelTop(topKeluar, M + wSetengah + 6, '5 Pengeluaran Terbesar', C.merah)
+    y = Math.max(akhirKiri, akhirKanan) + 11
+
+    y = tandaTangan(y + 2)
+
+    // ---------- Lampiran: rincian transaksi (selalu mulai di halaman baru) ----------
+    doc.addPage()
+    y = judulBagian(doc, 24, 'Lampiran — Rincian Transaksi', `${urut.length} transaksi · diurutkan berdasarkan tanggal`)
+    let saldoBerjalan = 0
+    const barisRincian = urut.map((t, i) => {
+      const masuk = tipeDari(t) === 'masuk'
+      saldoBerjalan += masuk ? Number(t.jumlah) : -Number(t.jumlah)
+      return {
+        saldo: saldoBerjalan,
+        sel: [
+          String(i + 1), tglPendek(t.tanggal), t.kategori_transaksi?.nama || '-', t.keterangan || '-',
+          masuk ? formatRupiah(t.jumlah) : '', masuk ? '' : formatRupiah(t.jumlah), formatRupiah(saldoBerjalan),
+        ],
+      }
+    })
+    autoTable(doc, {
+      ...GAYA_TABEL,
+      startY: y,
+      head: [['No', 'Tanggal', 'Kategori', 'Keterangan', 'Masuk', 'Keluar', 'Saldo Berjalan']],
+      body: barisRincian.map((b) => b.sel),
+      foot: [['', '', '', 'Total', formatRupiah(total.masuk), formatRupiah(total.keluar), formatRupiah(total.saldo)]],
+      showFoot: 'lastPage',
+      styles: { ...GAYA_TABEL.styles, fontSize: 7.8 },
+      columnStyles: {
+        0: { cellWidth: 9, halign: 'center', textColor: C.abu },
+        1: { cellWidth: 15 },
+        2: { cellWidth: 38 },
+        4: { cellWidth: 25, halign: 'right' },
+        5: { cellWidth: 25, halign: 'right' },
+        6: { cellWidth: 27, halign: 'right', fontStyle: 'bold' },
+      },
+      didParseCell: (d) => {
+        const i = d.column.index
+        if (d.section === 'head') { if (i === 0) d.cell.styles.halign = 'center'; if (i >= 4) d.cell.styles.halign = 'right' }
+        if (d.section === 'foot' && i >= 3) d.cell.styles.halign = 'right'
+        if (d.section === 'body') {
+          if (i === 4) d.cell.styles.textColor = C.hijau
+          if (i === 5) d.cell.styles.textColor = C.merah
+          if (i === 6) d.cell.styles.textColor = barisRincian[d.row.index].saldo >= 0 ? C.tinta : C.merah
+        }
+        if (d.section === 'foot') {
+          if (i === 4) d.cell.styles.textColor = C.hijau
+          if (i === 5) d.cell.styles.textColor = C.merah
+          if (i === 6) d.cell.styles.textColor = total.saldo >= 0 ? C.hijau : C.merah
+        }
+      },
+    })
+  }
+
+  // ---------- Header kecil & footer di setiap halaman ----------
+  const jumlahHalaman = doc.getNumberOfPages()
+  for (let i = 1; i <= jumlahHalaman; i++) {
+    doc.setPage(i)
+    if (i > 1) {
+      font(doc, 7.5, 'bold', C.maroonMuda)
+      doc.text('BIR PLETOK CEMPEDAK LESTARI', M, 12)
+      font(doc, 7.5, 'normal', C.abu)
+      doc.text(`Laporan Arus Kas · ${label}`, W - M, 12, { align: 'right' })
+      warnai(doc, C.emas, 'draw')
+      doc.setLineWidth(0.4)
+      doc.line(M, 14.5, W - M, 14.5)
+    }
+    warnai(doc, C.garis, 'draw')
+    doc.setLineWidth(0.3)
+    doc.line(M, H - 13, W - M, H - 13)
+    font(doc, 7, 'normal', C.abu)
+    doc.text(`Bir Pletok Cempedak Lestari · Laporan Arus Kas ${label} · Dokumen internal`, M, H - 8.5)
+    doc.text(`Halaman ${i} dari ${jumlahHalaman}`, W - M, H - 8.5, { align: 'right' })
+  }
 
   return doc
 }

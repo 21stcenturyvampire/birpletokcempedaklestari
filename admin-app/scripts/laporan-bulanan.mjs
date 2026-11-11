@@ -23,7 +23,7 @@
 import { createClient } from '@supabase/supabase-js'
 import jspdfPkg from 'jspdf'
 import autoTablePkg from 'jspdf-autotable'
-import { buatPdfLaporan, hitungTotal, labelBulan, namaFileLaporan, rentangBulan } from '../src/utils/laporanKeuangan.js'
+import { buatPdfLaporan, bulanSebelumnya, hitungTotal, labelBulan, namaFileLaporan, rentangBulan } from '../src/utils/laporanKeuangan.js'
 
 const { jsPDF } = jspdfPkg
 const autoTable = autoTablePkg.default || autoTablePkg
@@ -57,7 +57,7 @@ async function ambilTransaksi(supabase, bulan) {
   for (let dari = 0; ; dari += UKURAN) {
     const { data, error } = await supabase
       .from('transaksi_keuangan')
-      .select('id, tanggal, jumlah, keterangan, kategori_transaksi(nama, tipe)')
+      .select('id, tanggal, jumlah, keterangan, created_at, kategori_transaksi(nama, tipe)')
       .gte('tanggal', awal)
       .lte('tanggal', akhir)
       .order('tanggal', { ascending: true })
@@ -150,11 +150,14 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 
-  const daftar = await ambilTransaksi(supabase, bulan)
+  const [daftar, daftarBulanLalu] = await Promise.all([
+    ambilTransaksi(supabase, bulan),
+    ambilTransaksi(supabase, bulanSebelumnya(bulan)),
+  ])
   const total = hitungTotal(daftar)
   console.log(`• ${daftar.length} transaksi, masuk ${total.masuk}, keluar ${total.keluar}`)
 
-  const doc = buatPdfLaporan({ jsPDF, autoTable, bulan, daftar, keterangan: 'dibuat otomatis' })
+  const doc = buatPdfLaporan({ jsPDF, autoTable, bulan, daftar, daftarBulanLalu, keterangan: 'dibuat otomatis' })
   const isiPdf = Buffer.from(doc.output('arraybuffer'))
 
   const token = await ambilAccessToken()
