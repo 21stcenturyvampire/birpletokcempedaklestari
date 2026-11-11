@@ -24,10 +24,10 @@ export default function Layout() {
         <nav className="sidebar-nav">
           <NavLink to="/" end>Dasbor</NavLink>
           <div className="nav-group-label">Keuangan</div>
-          <NavLink to="/keuangan">Transaksi</NavLink>
+          <NavLink to="/keuangan" end>Transaksi</NavLink>
           {isSuperAdmin && <NavLink to="/keuangan/kategori">Kategori Transaksi</NavLink>}
           <div className="nav-group-label">Persediaan</div>
-          <NavLink to="/persediaan">Barang & Stok</NavLink>
+          <NavLink to="/persediaan" end>Barang & Stok</NavLink>
           <NavLink to="/persediaan/bahan-produksi">Bahan Produksi</NavLink>
           <NavLink to="/persediaan/inventaris">Inventaris</NavLink>
           {isSuperAdmin && <NavLink to="/persediaan/kategori">Kategori Barang</NavLink>}

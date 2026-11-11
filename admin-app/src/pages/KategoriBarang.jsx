@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabaseClient'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { wajibDiisi, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
 const FORM_KOSONG = { id: null, nama: '', jenis: 'produk_jadi' }
@@ -67,6 +69,8 @@ export default function KategoriBarang() {
     muatData()
   }
 
+  const tabel = useTabel(daftar, (k) => [k.nama, k.jenis === 'produk_jadi' ? 'Produk Jadi' : 'Bahan Baku'])
+
   return (
     <div>
       <div className="header-halaman">
@@ -80,10 +84,14 @@ export default function KategoriBarang() {
         {memuat ? (
           <p className="teks-muted">Memuat...</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead><tr><th>Nama</th><th>Jenis</th><th></th></tr></thead>
             <tbody>
-              {daftar.map((k) => (
+              <BarisKosong kolom={3} tabel={tabel} />
+              {tabel.barisHalaman.map((k) => (
                 <tr key={k.id}>
                   <td>{k.nama}</td>
                   <td>{k.jenis === 'produk_jadi' ? 'Produk Jadi' : 'Bahan Baku'}</td>
@@ -95,6 +103,9 @@ export default function KategoriBarang() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
 

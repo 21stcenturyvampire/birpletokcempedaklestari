@@ -3,6 +3,8 @@ import { supabase } from '../lib/supabaseClient'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { wajibDiisi, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
 const FORM_KOSONG = { id: null, nama: '', tipe: 'masuk' }
@@ -67,6 +69,8 @@ export default function KategoriTransaksi() {
     muatData()
   }
 
+  const tabel = useTabel(daftar, (k) => [k.nama, k.tipe === 'masuk' ? 'Kas Masuk' : 'Kas Keluar'])
+
   return (
     <div>
       <div className="header-halaman">
@@ -80,10 +84,14 @@ export default function KategoriTransaksi() {
         {memuat ? (
           <p className="teks-muted">Memuat...</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead><tr><th>Nama</th><th>Tipe</th><th></th></tr></thead>
             <tbody>
-              {daftar.map((k) => (
+              <BarisKosong kolom={3} tabel={tabel} />
+              {tabel.barisHalaman.map((k) => (
                 <tr key={k.id}>
                   <td>{k.nama}</td>
                   <td>
@@ -99,6 +107,9 @@ export default function KategoriTransaksi() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
 

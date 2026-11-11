@@ -11,6 +11,7 @@ bpcl-project/
 │   └── update_2.sql            (barang freetext, inventaris, jadwal konten, tampilan)
 │   └── update_3.sql            (tanggal pembelian di inventaris)
 │   └── update_4.sql            (tabel bahan_produksi berdiri sendiri)
+│   └── update_5.sql            (arsip laporan keuangan di Google Drive)
 ├── landing-page/
 │   └── index.html       Website publik (statis, cukup 1 file HTML)
 ├── admin-app/           Aplikasi internal: keuangan, stok, & editor konten
@@ -52,7 +53,8 @@ Yang **masih perlu kamu jalankan manual** (satu kali saja):
    `supabase/update_3.sql` (menambahkan kolom Tanggal Pembelian di
    Inventaris), lalu `supabase/update_4.sql` (tabel baru `bahan_produksi`
    untuk menu "Bahan Produksi" — berdiri sendiri, tidak terhubung ke
-   "Barang & Stok").
+   "Barang & Stok"), lalu `supabase/update_5.sql` (tabel arsip laporan
+   PDF bulanan yang diunggah otomatis ke Google Drive — lihat langkah 7).
 2. Isi `ADMIN_URL` di `landing-page/index.html` setelah `admin-app`
    selesai di-deploy (lihat langkah 5).
 
@@ -194,6 +196,65 @@ hidup sendiri; harus ada yang login ke Supabase Dashboard dan klik
 Kalau suatu saat project tetap ter-pause (misalnya belum sempat setup
 GitHub Actions-nya), datanya tetap aman sampai 1 tahun dan tinggal klik
 "Restore" di Supabase Dashboard — tidak ada data yang hilang.
+
+## 7. Laporan keuangan bulanan otomatis ke Google Drive
+
+Setiap **tanggal 1 pukul 08.00 WIB**, GitHub Actions
+(`.github/workflows/laporan-bulanan.yml`) membuat PDF laporan transaksi
+keuangan **bulan sebelumnya** (isinya sama persis dengan tombol "Export
+PDF") lalu mengunggahnya ke folder Google Drive
+**"Laporan Keuangan - Bir Pletok Cempedak Lestari"** (dibuat otomatis
+saat pertama kali jalan). Daftar laporan yang sudah terunggah tampil di
+menu **Keuangan → Transaksi**, bagian "Arsip Laporan di Google Drive",
+lengkap dengan tautan ke PDF dan foldernya.
+
+Dijalankan setelah bulan berganti (bukan tepat di hari terakhir) supaya
+transaksi yang diinput malam terakhir bulan tetap ikut. Kalau dijalankan
+ulang untuk bulan yang sama, file di Drive ditimpa — tidak dobel.
+
+**Setup (satu kali):**
+
+1. Jalankan `supabase/update_5.sql` di Supabase SQL Editor.
+2. Buka [Google Cloud Console](https://console.cloud.google.com/) dengan
+   akun Google yang Drive-nya akan dipakai menyimpan laporan → buat
+   project baru → **APIs & Services → Library** → aktifkan
+   **Google Drive API**.
+3. **APIs & Services → OAuth consent screen**: pilih *External*, isi nama
+   aplikasi & email, lalu di bagian *Publishing status* klik
+   **Publish app** (status *In production*). *Penting:* kalau dibiarkan
+   *Testing*, refresh token kedaluwarsa setiap 7 hari dan upload akan
+   gagal.
+4. **APIs & Services → Credentials → Create credentials → OAuth client
+   ID** → tipe *Web application* → di *Authorized redirect URIs* tambahkan
+   `https://developers.google.com/oauthplayground`. Catat **Client ID**
+   dan **Client Secret**.
+5. Buka [OAuth Playground](https://developers.google.com/oauthplayground)
+   → ikon ⚙️ kanan atas → centang *Use your own OAuth credentials* → isi
+   Client ID & Secret tadi. Di kotak kiri ketik scope
+   `https://www.googleapis.com/auth/drive.file` → **Authorize APIs** →
+   login & izinkan (abaikan peringatan "app belum diverifikasi" — itu
+   aplikasimu sendiri) → **Exchange authorization code for tokens** →
+   salin **Refresh token**.
+   (Scope `drive.file` hanya memberi akses ke file/folder yang dibuat
+   oleh integrasi ini sendiri, bukan seluruh isi Drive-mu.)
+6. Di repo GitHub: **Settings → Secrets and variables → Actions → New
+   repository secret**, tambahkan (selain `SUPABASE_URL` dan
+   `SUPABASE_SERVICE_ROLE_KEY` dari langkah 6):
+   - `GDRIVE_CLIENT_ID`
+   - `GDRIVE_CLIENT_SECRET`
+   - `GDRIVE_REFRESH_TOKEN`
+
+   Opsional: di tab **Variables** tambahkan `GDRIVE_FOLDER_NAME` kalau
+   ingin nama folder lain.
+7. Uji sekarang tanpa menunggu tanggal 1: tab **Actions → Laporan
+   Keuangan Bulanan ke Google Drive → Run workflow**, isi bulan (mis.
+   `2026-10`) atau kosongkan untuk bulan lalu. Cara yang sama dipakai
+   untuk membuat ulang laporan bulan tertentu (misal ada transaksi
+   susulan yang baru diinput).
+
+Folder laporan boleh dipindah ke dalam folder lain atau dibagikan ke
+orang lain lewat Google Drive seperti biasa — selama tidak dihapus dan
+namanya tidak diubah, upload berikutnya tetap masuk ke folder yang sama.
 
 ---
 

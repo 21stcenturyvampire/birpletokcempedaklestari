@@ -365,3 +365,56 @@ label{ font-size:0.85rem; font-weight:600; display:block; margin:12px 0 5px; }
 @media (prefers-reduced-motion: reduce){
   *{ transition:none !important; }
 }
+
+/* ---------- Tabel interaktif (cari + pagination) ---------- */
+.tabel-atas{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.kotak-cari{ position:relative; flex:1; min-width:220px; max-width:380px; }
+.kotak-cari .input{ padding-left:32px; padding-right:30px; }
+.kotak-cari-ikon{
+  position:absolute; left:11px; top:50%; transform:translateY(-50%);
+  color:var(--ink-600); font-size:1rem; pointer-events:none;
+}
+.kotak-cari-hapus{
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  background:none; border:none; font-size:1.15rem; line-height:1;
+  color:var(--ink-600); cursor:pointer; padding:2px 6px;
+}
+.kotak-cari input[type="search"]::-webkit-search-cancel-button{ display:none; }
+.tabel-per-halaman{ display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--ink-600); }
+.tabel-per-halaman label{ margin:0; font-weight:400; }
+.tabel-per-halaman .input{ width:auto; padding:6px 8px; }
+
+.tabel-scroll{ overflow-x:auto; }
+
+.paginasi{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:14px;
+  font-size:0.85rem;
+}
+.paginasi-info{ color:var(--ink-600); }
+.paginasi-tombol{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.paginasi-tombol button{
+  min-width:34px; height:34px; padding:0 10px;
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:#fff;
+  color:var(--ink-900);
+  font-size:0.85rem; font-weight:600;
+  cursor:pointer;
+  transition:background .12s ease, border-color .12s ease;
+}
+.paginasi-tombol button:hover:not(:disabled):not(.aktif){ background:var(--cream-100); border-color:var(--gold-300); }
+.paginasi-tombol button.aktif{ background:var(--gold-500); border-color:var(--gold-500); color:var(--ink-900); }
+.paginasi-tombol button:disabled{ opacity:0.45; cursor:not-allowed; }
+.paginasi-elipsis{ padding:0 4px; color:var(--ink-600); }

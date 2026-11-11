@@ -1,0 +1,4 @@
+# Kredensial Google OAuth yang di-download (berisi Client Secret)
+client_secret_*.json
+
+.DS_Store

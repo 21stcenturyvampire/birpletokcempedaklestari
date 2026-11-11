@@ -5,7 +5,11 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import InputUang from '../components/InputUang'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { formatRupiah, formatTanggal, todayISO } from '../utils/format'
+import { buatPdfLaporan, hitungTotal, namaFileLaporan, rentangBulan } from '../utils/laporanKeuangan'
+import ArsipDrive from '../components/ArsipDrive'
 import { wajibDiisi, harusAngkaPositif, tanggalTidakBolehFuture, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
 const FORM_KOSONG = { id: null, tanggal: todayISO(), tipe: 'masuk', kategori_id: '', jumlah: '', keterangan: '' }
@@ -30,9 +34,9 @@ export default function Keuangan() {
 
   const muatData = async () => {
     setMemuat(true)
-    const awal = `${bulan}-01`
-    const [tahun, bln] = bulan.split('-').map(Number)
-    const akhir = new Date(tahun, bln, 0).toISOString().slice(0, 10)
+    // Catatan: dulu pakai new Date(...).toISOString() yang di zona WIB
+    // mundur sehari, sehingga transaksi tanggal terakhir bulan tidak ikut.
+    const { awal, akhir } = rentangBulan(bulan)
 
     const [{ data: transaksi }, { data: kategori }] = await Promise.all([
       supabase
@@ -137,51 +141,26 @@ export default function Keuangan() {
     muatData()
   }
 
-  const totalMasuk = daftar.filter((t) => t.kategori_transaksi?.tipe === 'masuk').reduce((s, t) => s + Number(t.jumlah), 0)
-  const totalKeluar = daftar.filter((t) => t.kategori_transaksi?.tipe === 'keluar').reduce((s, t) => s + Number(t.jumlah), 0)
+  const tabel = useTabel(daftar, (t) => [
+    formatTanggal(t.tanggal),
+    t.kategori_transaksi?.nama,
+    t.kategori_transaksi?.tipe === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
+    t.keterangan,
+    formatRupiah(t.jumlah),
+    String(t.jumlah),
+  ])
+
+  const { masuk: totalMasuk, keluar: totalKeluar } = hitungTotal(daftar)
 
   const eksporPdf = async () => {
     setMengekspor(true)
     try {
-      const [{ default: jsPDF }] = await Promise.all([
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
         import('jspdf'),
         import('jspdf-autotable'),
       ])
-      const doc = new jsPDF()
-
-      doc.setFontSize(14)
-      doc.text('Bir Pletok Cempedak Lestari', 14, 18)
-      doc.setFontSize(10)
-      doc.setTextColor(100)
-      doc.text(`Laporan Transaksi Keuangan — ${bulan}`, 14, 25)
-      doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 14, 30)
-
-      const baris = daftar.map((t) => [
-        formatTanggal(t.tanggal),
-        t.kategori_transaksi?.nama || '-',
-        t.kategori_transaksi?.tipe === 'masuk' ? 'Masuk' : 'Keluar',
-        t.keterangan || '-',
-        (t.kategori_transaksi?.tipe === 'masuk' ? '+ ' : '- ') + formatRupiah(t.jumlah),
-      ])
-
-      doc.autoTable({
-        startY: 36,
-        head: [['Tanggal', 'Kategori', 'Jenis', 'Keterangan', 'Jumlah']],
-        body: baris,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [200, 155, 60], textColor: [44, 21, 12] },
-        columnStyles: { 4: { halign: 'right' } },
-      })
-
-      const akhirY = doc.lastAutoTable.finalY + 10
-      doc.setTextColor(20)
-      doc.setFontSize(10)
-      doc.text(`Total Kas Masuk : ${formatRupiah(totalMasuk)}`, 14, akhirY)
-      doc.text(`Total Kas Keluar: ${formatRupiah(totalKeluar)}`, 14, akhirY + 6)
-      doc.setFont(undefined, 'bold')
-      doc.text(`Saldo           : ${formatRupiah(totalMasuk - totalKeluar)}`, 14, akhirY + 12)
-
-      doc.save(`transaksi-keuangan-${bulan}.pdf`)
+      const doc = buatPdfLaporan({ jsPDF, autoTable, bulan, daftar })
+      doc.save(namaFileLaporan(bulan))
     } catch (err) {
       setNotif({ tipe: 'error', pesan: 'Gagal membuat PDF: ' + (err?.message || err) })
     }
@@ -232,6 +211,9 @@ export default function Keuangan() {
         ) : daftar.length === 0 ? (
           <p className="teks-muted">Belum ada transaksi di bulan ini.</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead>
               <tr>
@@ -243,7 +225,8 @@ export default function Keuangan() {
               </tr>
             </thead>
             <tbody>
-              {daftar.map((t) => (
+              <BarisKosong kolom={isSuperAdmin ? 5 : 4} tabel={tabel} />
+              {tabel.barisHalaman.map((t) => (
                 <tr key={t.id}>
                   <td>{formatTanggal(t.tanggal)}</td>
                   <td>
@@ -265,8 +248,13 @@ export default function Keuangan() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
+
+      <ArsipDrive bulanAktif={bulan} />
 
       {modalTerbuka && (
         <Modal title={form.id ? 'Ubah Transaksi' : 'Tambah Transaksi'} onClose={() => setModalTerbuka(false)}>

@@ -5,6 +5,8 @@ import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import InputUang from '../components/InputUang'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { formatAngka, todayISO, formatTanggal } from '../utils/format'
 import { wajibDiisi, angkaTidakNegatif, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
@@ -91,6 +93,11 @@ export default function Inventaris() {
     muatData()
   }
 
+  const tabel = useTabel(daftar, (a) => [
+    a.nama, a.catatan, a.kategori, `${formatAngka(a.jumlah)} ${a.satuan}`, LABEL_KONDISI[a.kondisi], a.lokasi,
+    a.tanggal_pembelian ? formatTanggal(a.tanggal_pembelian) : '',
+  ])
+
   return (
     <div>
       <div className="header-halaman">
@@ -110,12 +117,16 @@ export default function Inventaris() {
         ) : daftar.length === 0 ? (
           <p className="teks-muted">Belum ada data inventaris.</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead>
               <tr><th>Nama</th><th>Kategori</th><th>Jumlah</th><th>Kondisi</th><th>Lokasi</th><th>Tgl. Pembelian</th><th></th></tr>
             </thead>
             <tbody>
-              {daftar.map((a) => (
+              <BarisKosong kolom={7} tabel={tabel} />
+              {tabel.barisHalaman.map((a) => (
                 <tr key={a.id}>
                   <td>{a.nama}{a.catatan && <div className="teks-muted" style={{ fontSize: '0.8rem' }}>{a.catatan}</div>}</td>
                   <td>{a.kategori || '-'}</td>
@@ -131,6 +142,9 @@ export default function Inventaris() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
 

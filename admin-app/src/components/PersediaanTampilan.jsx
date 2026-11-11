@@ -5,6 +5,8 @@ import Modal from './Modal'
 import ConfirmDialog from './ConfirmDialog'
 import InputUang from './InputUang'
 import Notifikasi from './Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from './TabelKontrol'
 import { formatRupiah, formatAngka, formatTanggal, todayISO } from '../utils/format'
 import {
   wajibDiisi,
@@ -80,6 +82,14 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
   const barangList = jenisFilter ? semuaBarang.filter((b) => b.kategori_barang?.jenis === jenisFilter) : semuaBarang
   // Untuk saran nama & pencocokan freetext, tetap cari di SEMUA barang
   // (bukan cuma yang sedang tampil) supaya tidak membuat barang duplikat.
+  const tabel = useTabel(barangList, (b) => [
+    b.kode, b.nama, b.kategori_barang?.nama, `${formatAngka(b.stok_saat_ini)} ${b.satuan}`,
+    Number(b.stok_saat_ini) <= Number(b.stok_minimum) ? 'Menipis' : '',
+    b.harga_jual ? formatRupiah(b.harga_jual) : '', b.aktif ? 'Aktif' : 'Nonaktif',
+  ])
+  const tabelRiwayat = useTabel(riwayatData, (r) => [
+    formatTanggal(r.tanggal), r.tipe === 'masuk' ? 'Masuk' : 'Keluar', formatAngka(r.jumlah), formatAngka(r.stok_sesudah), r.keterangan,
+  ])
   const kategoriUntukForm = jenisFilter ? kategoriList.filter((k) => k.jenis === jenisFilter) : kategoriList
 
   // ---------- Modal Barang (super admin, form lengkap) ----------
@@ -259,12 +269,13 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
   // ---------- Riwayat mutasi per barang ----------
   const bukaRiwayat = async (b) => {
     setRiwayatBarang(b)
+    setRiwayatData([])
+    tabelRiwayat.setCari('')
     const { data } = await supabase
       .from('mutasi_stok')
       .select('id, tanggal, tipe, jumlah, stok_sebelum, stok_sesudah, keterangan')
       .eq('barang_id', b.id)
       .order('created_at', { ascending: false })
-      .limit(30)
     setRiwayatData(data || [])
   }
 
@@ -287,6 +298,9 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
         ) : barangList.length === 0 ? (
           <p className="teks-muted">Belum ada barang. Ketik nama barang di "+ Stok Masuk/Keluar" untuk mulai mencatat.</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead>
               <tr>
@@ -294,7 +308,8 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
               </tr>
             </thead>
             <tbody>
-              {barangList.map((b) => {
+              <BarisKosong kolom={7} tabel={tabel} />
+              {tabel.barisHalaman.map((b) => {
                 const menipis = Number(b.stok_saat_ini) <= Number(b.stok_minimum)
                 return (
                   <tr key={b.id}>
@@ -318,6 +333,9 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
               })}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
 
@@ -471,10 +489,14 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
           {riwayatData.length === 0 ? (
             <p className="teks-muted">Belum ada riwayat mutasi untuk barang ini.</p>
           ) : (
+            <>
+            <KotakCari tabel={tabelRiwayat} placeholder="Cari tanggal, tipe, keterangan..." />
+            <div className="tabel-scroll">
             <table className="tabel">
               <thead><tr><th>Tanggal</th><th>Tipe</th><th>Jumlah</th><th>Stok Sesudah</th><th>Keterangan</th></tr></thead>
               <tbody>
-                {riwayatData.map((r) => (
+                <BarisKosong kolom={5} tabel={tabelRiwayat} />
+                {tabelRiwayat.barisHalaman.map((r) => (
                   <tr key={r.id}>
                     <td>{formatTanggal(r.tanggal)}</td>
                     <td className={r.tipe === 'masuk' ? 'stat-hijau' : 'stat-merah'}>{r.tipe === 'masuk' ? 'Masuk' : 'Keluar'}</td>
@@ -485,6 +507,9 @@ export default function PersediaanTampilan({ judul, deskripsi, jenisFilter }) {
                 ))}
               </tbody>
             </table>
+            </div>
+            <Paginasi tabel={tabelRiwayat} />
+            </>
           )}
         </Modal>
       )}

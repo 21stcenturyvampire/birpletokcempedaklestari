@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext'
 import Modal from '../components/Modal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { formatTanggal, todayISO } from '../utils/format'
 import { wajibDiisi, jalankanValidasi, adaError, pesanErrorRamah } from '../utils/validation'
 
@@ -88,6 +90,9 @@ export default function JadwalKonten() {
   }
 
   const daftarTampil = filterStatus === 'semua' ? daftar : daftar.filter((j) => j.status === filterStatus)
+  const tabel = useTabel(daftarTampil, (j) => [
+    formatTanggal(j.tanggal), j.waktu?.slice(0, 5), LABEL_PLATFORM[j.platform], j.judul, j.keterangan, LABEL_STATUS[j.status],
+  ])
 
   return (
     <div>
@@ -118,12 +123,16 @@ export default function JadwalKonten() {
         ) : daftarTampil.length === 0 ? (
           <p className="teks-muted">Belum ada jadwal konten.</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead>
               <tr><th>Tanggal</th><th>Platform</th><th>Judul/Ide Konten</th><th>Status</th><th></th></tr>
             </thead>
             <tbody>
-              {daftarTampil.map((j) => (
+              <BarisKosong kolom={5} tabel={tabel} />
+              {tabel.barisHalaman.map((j) => (
                 <tr key={j.id}>
                   <td>{formatTanggal(j.tanggal)}{j.waktu ? ` · ${j.waktu.slice(0, 5)}` : ''}</td>
                   <td>{LABEL_PLATFORM[j.platform]}</td>
@@ -137,6 +146,9 @@ export default function JadwalKonten() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
 

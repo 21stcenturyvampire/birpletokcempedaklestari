@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import Notifikasi from '../components/Notifikasi'
+import useTabel from '../hooks/useTabel'
+import { KotakCari, Paginasi, BarisKosong } from '../components/TabelKontrol'
 import { pesanErrorRamah } from '../utils/validation'
 
 export default function Pengguna() {
@@ -36,6 +38,8 @@ export default function Pengguna() {
     if (target.id === profile.id) refreshProfil()
   }
 
+  const tabel = useTabel(daftar, (p) => [p.nama_lengkap, p.email, p.role === 'super_admin' ? 'Super Admin' : 'Editor'])
+
   return (
     <div>
       <h2 className="judul-halaman">Pengguna</h2>
@@ -53,10 +57,14 @@ export default function Pengguna() {
         {memuat ? (
           <p className="teks-muted">Memuat...</p>
         ) : (
+          <>
+          <KotakCari tabel={tabel} />
+          <div className="tabel-scroll">
           <table className="tabel">
             <thead><tr><th>Nama</th><th>Email</th><th>Peran</th><th></th></tr></thead>
             <tbody>
-              {daftar.map((p) => (
+              <BarisKosong kolom={4} tabel={tabel} />
+              {tabel.barisHalaman.map((p) => (
                 <tr key={p.id}>
                   <td>{p.nama_lengkap} {p.id === profile.id && <span className="teks-muted">(kamu)</span>}</td>
                   <td>{p.email}</td>
@@ -80,6 +88,9 @@ export default function Pengguna() {
               ))}
             </tbody>
           </table>
+          </div>
+          <Paginasi tabel={tabel} />
+          </>
         )}
       </div>
     </div>

@@ -1,0 +1,46 @@
+name: Laporan Keuangan Bulanan ke Google Drive
+
+on:
+  schedule:
+    # Tanggal 1 setiap bulan, 01:00 UTC = 08:00 WIB -> laporan bulan sebelumnya.
+    - cron: '0 1 1 * *'
+  workflow_dispatch:
+    inputs:
+      bulan:
+        description: 'Bulan laporan (YYYY-MM). Kosongkan = bulan lalu.'
+        required: false
+        default: ''
+
+concurrency:
+  group: laporan-bulanan
+  cancel-in-progress: false
+
+jobs:
+  laporan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: admin-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: admin-app/package-lock.json
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Buat PDF & unggah ke Google Drive
+        run: node scripts/laporan-bulanan.mjs
+        env:
+          TZ: Asia/Jakarta
+          BULAN: ${{ github.event.inputs.bulan }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GDRIVE_CLIENT_ID: ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET: ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_REFRESH_TOKEN: ${{ secrets.GDRIVE_REFRESH_TOKEN }}
+          GDRIVE_FOLDER_NAME: ${{ vars.GDRIVE_FOLDER_NAME }}
